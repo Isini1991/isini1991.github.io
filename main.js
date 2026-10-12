@@ -180,6 +180,11 @@
           body: JSON.stringify(data)
         });
         const out = await res.json().catch(() => ({}));
+        if (/activat/i.test(out.message || "")) { // FormSubmit's one-time setup, only ever seen by Esi
+          send.disabled = false; label.textContent = "Send message";
+          status.textContent = "Almost ready: open the \"Activate Form\" email from FormSubmit, then send again.";
+          return;
+        }
         if (!res.ok || String(out.success) === "false") throw new Error(out.message || res.status);
         cform.classList.add("is-sent");
         label.textContent = "Sent";
@@ -187,7 +192,11 @@
         cform.reset();
       } catch (err) {
         send.disabled = false; label.textContent = "Send message";
-        status.textContent = "It didn't go through. Please email me directly instead.";
+        // The send service can be unreachable (some countries filter it), so hand the
+        // visitor a ready-to-send email with what they already wrote.
+        const mail = document.getElementById("email").getAttribute("href").replace("mailto:", "");
+        const body = `${data.message}\n\n${data.name} (${data.email})\nProject: ${data.project}`;
+        status.innerHTML = `It didn't go through from here. <a href="mailto:${mail}?subject=${encodeURIComponent("New enquiry from your portfolio")}&body=${encodeURIComponent(body)}">Send it by email instead</a>, it's already written.`;
       }
     });
   }

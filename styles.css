@@ -427,6 +427,7 @@ a { color: inherit; }
 .send:focus-visible { outline: 2px solid var(--on-klein); outline-offset: 4px; }
 .send[disabled] { opacity: .6; cursor: progress; }
 .form-status { margin: 0; font-family: var(--f-body); font-style: italic; font-size: 1.1rem; }
+.form-status a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: .18em; }
 .cform.is-sent .send { background: var(--on-klein); color: var(--klein); opacity: 1; cursor: default; }
 .cform.is-sent .send::after { content: "\2713"; transform: none; }
 .cform.is-sent .fields, .cform.is-sent .chips { opacity: .45; pointer-events: none; transition: opacity .4s var(--ease); }
