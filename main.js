@@ -9,7 +9,9 @@
     const art = p.video
       ? `<video muted ${Array.isArray(p.video) ? "" : "loop "}playsinline preload="none" data-src="${esc([].concat(p.video).join("|"))}"${p.image ? ` poster="${esc(p.image)}"` : ""}></video>`
       : p.image
-        ? `<img src="${esc(p.image)}" alt="" loading="lazy">`
+        ? p.mobile
+          ? `<picture><source media="(max-width: 899px)" srcset="${esc(p.mobile)}"><img src="${esc(p.image)}" alt="" loading="lazy"></picture>`
+          : `<img src="${esc(p.image)}" alt="" loading="lazy">`
         : `<div class="cover-art"></div>`;
     return `<div class="cover shape-${esc(p.shape || "orb")}" style="--c1:${esc(p.colors[0])};--c2:${esc(p.colors[1])}">${art}</div>`;
   };
@@ -17,7 +19,9 @@
   const linkAttrs = (p) => `href="${esc(p.url || "#")}"${isExternal(p.url) ? ' target="_blank" rel="noopener"' : ""}`;
 
   // Live embeds only work on the real site, not inside a framed preview.
-  const canEmbed = window.self === window.top && window.matchMedia("(min-width: 861px)").matches;
+  const canEmbed = window.self === window.top;
+  const phone = window.matchMedia("(max-width: 899px)").matches;
+  const finePointer = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
   const liveButton = (p, i) => p.live && canEmbed && isExternal(p.url)
     ? `<button class="live-btn label" type="button" data-live="${i}">Try it live</button>` : "";
 
@@ -90,11 +94,12 @@
   });
 
   /* ---------- live sites inside the gallery cards ---------- */
-  // On desktop, cards marked `embed` run the real site, scaled down, so its motion is
-  // smooth and true to speed. Only the card most in view runs a site at any moment.
-  const liveCovers = canEmbed && !reduceMotion && window.matchMedia("(hover: hover)").matches;
+  // Cards marked `embed` run the real site, scaled down, so its motion is smooth and
+  // true to speed. Phones get the site's mobile layout in a portrait card. Only the
+  // card most in view runs a site at any moment.
+  const liveCovers = canEmbed && !reduceMotion;
   if (liveCovers) {
-    const SITE_W = 1440, SITE_H = 900;
+    const SITE_W = phone ? 390 : 1440;
     const coverRatios = new Map();
     let active = null;
     const mount = (card) => {
@@ -102,12 +107,12 @@
       const cover = card.querySelector(".cover");
       if (cover.querySelector("iframe")) return;
       const frame = document.createElement("iframe");
-      frame.className = "cover-live" + (p.interactive ? " is-interactive" : "");
+      frame.className = "cover-live" + (p.interactive && finePointer ? " is-interactive" : ""); // on touch, swipes must still scroll the page
       frame.src = p.url;
       frame.title = `${p.title}, live`;
       frame.setAttribute("tabindex", "-1");
       frame.setAttribute("allow", "autoplay");
-      frame.width = SITE_W; frame.height = SITE_H;
+      frame.width = SITE_W; frame.height = Math.round(SITE_W * cover.clientHeight / cover.clientWidth);
       frame.style.transform = `scale(${cover.clientWidth / SITE_W})`;
       frame.addEventListener("load", () => setTimeout(() => frame.classList.add("is-ready"), 600));
       cover.append(frame);
@@ -301,9 +306,10 @@
       });
     }
 
-    // Horizontal gallery wall: pinned and scrubbed on wide screens only.
+    // Horizontal gallery wall: pinned and scrubbed, on phones too.
+    ST.config({ ignoreMobileResize: true }); // the phone address bar showing/hiding must not re-layout the pin
     const mm = gsap.matchMedia();
-    mm.add("(min-width: 900px) and (prefers-reduced-motion: no-preference)", () => {
+    mm.add("(prefers-reduced-motion: no-preference)", () => {
       const section = document.getElementById("work");
       const wrap = section.querySelector(".track-wrap");
       const bar = document.getElementById("bar");
@@ -475,6 +481,16 @@
     pointer.set((e.clientX - b.left) / b.width, 1 - (e.clientY - b.top) / b.height);
     lastMove = performance.now();
   }, { passive: true });
+  // On phones the finger is the brush. Listeners are passive, so the page still scrolls.
+  const touch = (e) => {
+    const t = e.touches[0], b = canvas.getBoundingClientRect();
+    if (!t) return;
+    pointer.set((t.clientX - b.left) / b.width, 1 - (t.clientY - b.top) / b.height);
+    if (e.type === "touchstart") last.copy(pointer);
+    lastMove = performance.now();
+  };
+  hero.addEventListener("touchstart", touch, { passive: true });
+  hero.addEventListener("touchmove", touch, { passive: true });
   new IntersectionObserver(([entry]) => (visible = entry.isIntersecting)).observe(canvas);
 
   const clock = new THREE.Clock();

@@ -16,14 +16,16 @@
     video     Optional muted motion clip (e.g. "media/web/clip.mp4"), or a list
               of clips that play one after another. Plays on its own while the
               card is on screen; "image" becomes its poster.
-    embed     true = on desktop, the gallery card runs the real site live (scaled
+    embed     true = the gallery card runs the real site live (scaled
               down) while it is in view. Only works for sites that allow framing.
     interactive  true = visitors can move the mouse inside that live card
               (for sites that react to the cursor).
     live      true = show a "Try it live" button that opens the real site in a
-              window on the page (desktop only, hidden in the framed preview).
+              window on the page (hidden in the framed preview).
     image     Path to a cover image (e.g. "images/halde.jpg"). Leave "" to use
               the generated cover made from colors + shape below.
+    mobile    Optional portrait cover used in the gallery on phones
+              (e.g. "images/halde-mobile.webp").
     colors    Two colors for the generated cover [background, shape]
     shape     Generated cover shape: "orb" | "arch" | "stripes" | "dots" | "split"
     featured  true = also shown in the large horizontal gallery (pick 4 to 6)
@@ -41,6 +43,7 @@ window.PROJECTS = [
     interactive: true,
     live: true,
     image: "media/web/false-gods-poster.webp",
+    mobile: "images/false-gods-mobile.webp",
     colors: ["#101010", "#F2F2F2"],
     shape: "split",
     featured: true
@@ -57,6 +60,7 @@ window.PROJECTS = [
     interactive: true,
     live: true,
     image: "media/web/tristanbejawn-poster.webp",
+    mobile: "images/tristanbejawn-mobile.webp",
     colors: ["#D9D6D0", "#2B2B2B"],
     shape: "stripes",
     featured: true
@@ -73,6 +77,7 @@ window.PROJECTS = [
     interactive: false,
     live: true,
     image: "media/web/themonolithproject-scene-poster.webp",
+    mobile: "images/themonolithproject-mobile.webp",
     colors: ["#1B1F3A", "#F0C987"],
     shape: "orb",
     featured: true
@@ -89,6 +94,7 @@ window.PROJECTS = [
     interactive: false,
     live: false,
     image: "media/web/vigorvigorous-poster.webp",
+    mobile: "images/vigorvigorous-mobile.webp",
     colors: ["#0A0A0A", "#7A7A7A"],
     shape: "arch",
     featured: true
@@ -105,6 +111,7 @@ window.PROJECTS = [
     interactive: false,
     live: true,
     image: "media/web/dj-lofi-poster.webp",
+    mobile: "images/dj-lofi-mobile.webp",
     colors: ["#3A2416", "#E0A55B"],
     shape: "orb",
     featured: true
@@ -153,6 +160,7 @@ window.PROJECTS = [
     interactive: false,
     live: true,
     image: "media/web/sinawings-hero-poster.webp",
+    mobile: "images/sinawings-mobile.webp",
     colors: ["#0B0B0B", "#C9A86A"],
     shape: "stripes",
     featured: true
@@ -185,6 +193,7 @@ window.PROJECTS = [
     interactive: false,
     live: true,
     image: "media/web/matthewjoseph-poster.webp",
+    mobile: "images/matthewjoseph-mobile.webp",
     colors: ["#1C1C1C", "#D8D2C8"],
     shape: "arch",
     featured: true
