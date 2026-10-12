@@ -159,6 +159,39 @@
     live.addEventListener("click", (e) => { if (e.target === live) live.close(); });
   }
 
+  /* ---------- contact form ---------- */
+  // Sent through FormSubmit to Esi's Gmail. Without JavaScript the form still posts
+  // normally and FormSubmit redirects back to #contact.
+  const cform = document.getElementById("cform");
+  if (cform) {
+    const status = document.getElementById("form-status");
+    const send = cform.querySelector(".send");
+    const label = send.querySelector("span");
+    cform.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      if (!cform.reportValidity()) return;
+      const data = Object.fromEntries(new FormData(cform));
+      if (data._honey) return; // a bot filled the hidden field
+      send.disabled = true; label.textContent = "Sending"; status.textContent = "";
+      try {
+        const res = await fetch(cform.action.replace("formsubmit.co/", "formsubmit.co/ajax/"), {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Accept: "application/json" },
+          body: JSON.stringify(data)
+        });
+        const out = await res.json().catch(() => ({}));
+        if (!res.ok || String(out.success) === "false") throw new Error(out.message || res.status);
+        cform.classList.add("is-sent");
+        label.textContent = "Sent";
+        status.textContent = `Thank you, ${data.name.split(" ")[0]}. I'll write back to ${data.email}.`;
+        cform.reset();
+      } catch (err) {
+        send.disabled = false; label.textContent = "Send message";
+        status.textContent = "It didn't go through. Please email me directly instead.";
+      }
+    });
+  }
+
   /* ---------- copy email ---------- */
   const copyBtn = document.getElementById("copy");
   copyBtn.addEventListener("click", () => {

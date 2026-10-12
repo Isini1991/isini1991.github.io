@@ -379,6 +379,57 @@ a { color: inherit; }
   border-radius: 999px; padding: 8px 16px; cursor: pointer;
 }
 .copy:hover { background: var(--on-klein); color: var(--klein); }
+.contact-body { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: clamp(40px, 6vw, 96px); align-items: start; }
+@media (max-width: 860px) { .contact-body { grid-template-columns: 1fr; } }
+.direct { display: grid; gap: 14px; }
+.direct .email { font-size: clamp(1.4rem, 2.4vw, 2.2rem); }
+
+/* Contact form: big underlined fields on the blue, chips for the kind of project */
+.cform { display: grid; gap: 34px; }
+.chips { border: 0; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 10px; }
+.chips legend { padding: 0; margin-bottom: 14px; }
+.chips label { position: relative; cursor: pointer; }
+.chips input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+.chips span {
+  display: inline-block; padding: 10px 18px; border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--on-klein) 55%, transparent);
+  font-family: var(--f-display); font-weight: 500; font-size: 1.05rem;
+  transition: background .25s var(--ease), color .25s var(--ease), border-color .25s var(--ease);
+}
+.chips label:hover span { border-color: var(--on-klein); }
+.chips input:checked + span { background: var(--on-klein); color: var(--klein); border-color: var(--on-klein); }
+.chips input:focus-visible + span { outline: 2px solid var(--on-klein); outline-offset: 3px; }
+.fields { display: grid; grid-template-columns: 1fr 1fr; gap: 28px 32px; }
+@media (max-width: 600px) { .fields { grid-template-columns: 1fr; } }
+.field { display: grid; gap: 8px; }
+.field.wide { grid-column: 1 / -1; }
+.field input, .field textarea {
+  width: 100%; font: inherit; font-family: var(--f-body); font-size: clamp(1.25rem, 2vw, 1.6rem);
+  color: var(--on-klein); background: transparent; border: 0; border-radius: 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--on-klein) 55%, transparent);
+  padding: 6px 0 10px; resize: vertical; transition: border-color .25s var(--ease);
+}
+.field textarea { min-height: 3.4em; }
+.field input::placeholder, .field textarea::placeholder { color: color-mix(in srgb, var(--on-klein) 45%, transparent); font-style: italic; }
+.field input:focus, .field textarea:focus { outline: none; border-bottom-color: var(--on-klein); box-shadow: 0 1px 0 var(--on-klein); }
+.field input:-webkit-autofill { -webkit-text-fill-color: var(--on-klein); transition: background-color 9999s; }
+.honey { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
+.form-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 24px; }
+.send {
+  font: inherit; font-family: var(--f-display); font-weight: 600; font-size: 1.15rem;
+  color: var(--klein); background: var(--on-klein); border: 0; border-radius: 999px;
+  padding: 16px 30px; cursor: pointer; display: inline-flex; align-items: center; gap: 12px;
+  transition: transform .35s var(--ease), background .25s var(--ease), color .25s var(--ease);
+}
+.send::after { content: "\2192"; transition: transform .35s var(--ease); }
+.send:hover { background: var(--paper); color: var(--on-klein); }
+.send:hover::after { transform: translateX(5px); }
+.send:focus-visible { outline: 2px solid var(--on-klein); outline-offset: 4px; }
+.send[disabled] { opacity: .6; cursor: progress; }
+.form-status { margin: 0; font-family: var(--f-body); font-style: italic; font-size: 1.1rem; }
+.cform.is-sent .send { background: var(--on-klein); color: var(--klein); opacity: 1; cursor: default; }
+.cform.is-sent .send::after { content: "\2713"; transform: none; }
+.cform.is-sent .fields, .cform.is-sent .chips { opacity: .45; pointer-events: none; transition: opacity .4s var(--ease); }
 .foot {
   display: flex; flex-wrap: wrap; justify-content: space-between; gap: 1rem;
   padding-top: 20px; border-top: 1px solid color-mix(in srgb, var(--on-klein) 40%, transparent);

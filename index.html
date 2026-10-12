@@ -98,9 +98,37 @@
 <footer class="contact wrap" id="contact">
   <p class="label">Contact</p>
   <h2>Have work that deserves a <em>better</em> home online?</h2>
-  <div class="email-row">
-    <a class="email" id="email" href="mailto:es.khoshhal@gmail.com">es.khoshhal@gmail.com</a>
-    <button class="copy" id="copy" type="button">Copy email</button>
+  <div class="contact-body">
+    <form class="cform" id="cform" action="https://formsubmit.co/es.khoshhal@gmail.com" method="POST">
+      <fieldset class="chips">
+        <legend class="label">What are you making?</legend>
+        <label><input type="radio" name="project" value="Portfolio" checked><span>Portfolio</span></label>
+        <label><input type="radio" name="project" value="Music or label site"><span>Music or label</span></label>
+        <label><input type="radio" name="project" value="Shop"><span>Shop</span></label>
+        <label><input type="radio" name="project" value="Something else"><span>Something else</span></label>
+      </fieldset>
+      <div class="fields">
+        <label class="field"><span class="label">Your name</span><input type="text" name="name" required autocomplete="name"></label>
+        <label class="field"><span class="label">Your email</span><input type="email" name="email" required autocomplete="email"></label>
+        <label class="field wide"><span class="label">Tell me about it</span><textarea name="message" rows="3" required placeholder="The work, the people, the timing"></textarea></label>
+      </div>
+      <input type="hidden" name="_subject" value="New enquiry from your portfolio">
+      <input type="hidden" name="_template" value="table">
+      <input type="hidden" name="_captcha" value="false">
+      <input type="hidden" name="_next" value="https://isini1991.github.io/#contact">
+      <input class="honey" type="text" name="_honey" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <div class="form-foot">
+        <button class="send" type="submit"><span>Send message</span></button>
+        <p class="form-status" id="form-status" role="status" aria-live="polite"></p>
+      </div>
+    </form>
+    <div class="direct">
+      <p class="label">Or write directly</p>
+      <div class="email-row">
+        <a class="email" id="email" href="mailto:es.khoshhal@gmail.com">es.khoshhal@gmail.com</a>
+        <button class="copy" id="copy" type="button">Copy email</button>
+      </div>
+    </div>
   </div>
   <div class="foot label">
     <div class="socials">
