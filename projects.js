@@ -220,7 +220,7 @@ window.PROJECTS = [
     year: "",
     medium: "Website",
     summary: "Description to add.",
-    url: "https://www.amenroad.com/",
+    url: "https://amenroad.com/",
     video: "",
     embed: false,
     interactive: false,
