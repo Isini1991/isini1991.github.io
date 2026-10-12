@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- HEAD START -->
+<title>Esi Studio Portfolio</title>
+<meta name="description" content="Esi is a web designer and creative developer making digital experiences for artists and independent brands.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,300..800&family=JetBrains+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,300..600;1,6..72,300..600&display=swap">
+<!-- HEAD END -->
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<!-- BODY START -->
+<header class="bar wrap">
+  <a class="wordmark" href="#top">Esi<span>.</span></a>
+  <nav class="nav label" aria-label="Main">
+    <a href="#work">Work</a>
+    <a href="#index">Index</a>
+    <a href="#about">About</a>
+    <a href="#contact">Contact</a>
+  </nav>
+  <span class="status label">Booking projects for 2027</span>
+</header>
+
+<main id="top">
+  <section class="hero wrap">
+    <div class="hero-copy">
+      <p class="label">Web Designer &amp; Creative Developer</p>
+      <h1>
+        <span class="line"><span>Digital experiences</span></span>
+        <span class="line"><span>for <em>artists</em> &amp;</span></span>
+        <span class="line"><span>independent brands</span></span>
+      </h1>
+      <p class="hero-intro">I design and build websites for photographers, filmmakers, musicians and independent labels. Sites that look like the work and move like it too.</p>
+      <div class="hero-meta label">
+        <span>Sites for artists, musicians and labels</span>
+        <span>Design · Code · Motion · WebGL</span>
+      </div>
+    </div>
+    <figure class="artwork">
+      <div class="artwork-frame"><canvas id="ink" aria-label="A live ink-wash animation that follows your cursor"></canvas></div>
+      <figcaption class="wall-label">
+        <b>Ink Study No. 7</b>
+        <span>Real-time WebGL, GLSL shader</span>
+        <i>Move your cursor across the surface.</i>
+      </figcaption>
+    </figure>
+  </section>
+
+  <section class="gallery" id="work">
+    <div class="section-head wrap">
+      <h2>Selected work</h2>
+      <div class="progress label"><span id="count">01 / 05</span><span class="progress-bar"><span id="bar"></span></span></div>
+    </div>
+    <div class="track-wrap wrap"><div class="track" id="track"></div></div>
+  </section>
+
+  <section class="index wrap" id="index">
+    <div class="section-head">
+      <h2>Index</h2>
+      <span class="label" id="index-count">16 projects</span>
+    </div>
+    <ul class="rows" id="rows"></ul>
+  </section>
+
+  <section class="about wrap" id="about">
+    <div class="section-head">
+      <h2>About</h2>
+      <span class="label">Practice</span>
+    </div>
+    <div class="about-grid">
+      <p class="statement">Artists and small brands make things with care. I build the websites that show it, with the same attention to <em>material, pace and detail</em> that went into the work itself.</p>
+      <div class="about-side">
+        <p>I work closely with a small number of clients each year, from the first sketch to launch. Every site is designed and coded by me, so what we agree on in the design is what ships.</p>
+        <ul class="services">
+          <li>Art direction <span>Identity on screen</span></li>
+          <li>Web design <span>Figma to launch</span></li>
+          <li>Creative development <span>GSAP, three.js</span></li>
+          <li>E-commerce for makers <span>Shopify, headless</span></li>
+          <li>Content systems <span>CMS, archives</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="contact wrap" id="contact">
+  <p class="label">Contact</p>
+  <h2>Have work that deserves a <em>better</em> home online?</h2>
+  <div class="email-row">
+    <a class="email" id="email" href="mailto:hello@esi.studio">hello@esi.studio</a>
+    <button class="copy" id="copy" type="button">Copy email</button>
+  </div>
+  <div class="foot label">
+    <div class="socials">
+      <a href="#" target="_blank" rel="noopener">Instagram</a>
+      <a href="#" target="_blank" rel="noopener">Are.na</a>
+      <a href="#" target="_blank" rel="noopener">GitHub</a>
+      <a href="#" target="_blank" rel="noopener">LinkedIn</a>
+    </div>
+    <span>© 2026 Esi. Designed and built by hand.</span>
+  </div>
+</footer>
+
+<div class="preview" id="preview" aria-hidden="true"></div>
+
+<dialog class="live" id="live" aria-label="Live site">
+  <div class="live-head">
+    <span class="live-title"></span>
+    <div class="live-actions label">
+      <a class="live-open" href="#" target="_blank" rel="noopener">Open in new tab</a>
+      <button class="live-close label" type="button">Close</button>
+    </div>
+  </div>
+  <iframe title="Live site" loading="lazy" allow="autoplay; fullscreen"></iframe>
+</dialog>
+<!-- BODY END -->
+
+<!-- SCRIPTS START -->
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+<!-- SCRIPTS END -->
+<script src="projects.js"></script>
+<script src="main.js"></script>
+</body>
+</html>
