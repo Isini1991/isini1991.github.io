@@ -24,7 +24,7 @@
   const featured = projects.filter((p) => p.featured);
   const track = document.getElementById("track");
   track.innerHTML = featured.map((p) => `
-    <div class="card">
+    <div class="card" data-i="${projects.indexOf(p)}">
       <a class="card-link" ${linkAttrs(p)}>
         ${coverHTML(p)}
         <div class="card-label">
@@ -88,6 +88,51 @@
       card.addEventListener("pointerleave", () => v.pause());
     }
   });
+
+  /* ---------- live sites inside the gallery cards ---------- */
+  // On desktop, cards marked `embed` run the real site, scaled down, so its motion is
+  // smooth and true to speed. Only the card most in view runs a site at any moment.
+  const liveCovers = canEmbed && !reduceMotion && window.matchMedia("(hover: hover)").matches;
+  if (liveCovers) {
+    const SITE_W = 1440, SITE_H = 900;
+    const coverRatios = new Map();
+    let active = null;
+    const mount = (card) => {
+      const p = projects[card.dataset.i];
+      const cover = card.querySelector(".cover");
+      if (cover.querySelector("iframe")) return;
+      const frame = document.createElement("iframe");
+      frame.className = "cover-live" + (p.interactive ? " is-interactive" : "");
+      frame.src = p.url;
+      frame.title = `${p.title}, live`;
+      frame.setAttribute("tabindex", "-1");
+      frame.setAttribute("allow", "autoplay");
+      frame.width = SITE_W; frame.height = SITE_H;
+      frame.style.transform = `scale(${cover.clientWidth / SITE_W})`;
+      frame.addEventListener("load", () => setTimeout(() => frame.classList.add("is-ready"), 600));
+      cover.append(frame);
+    };
+    const unmount = (card) => card.querySelector(".cover-live")?.remove();
+    const pick = () => {
+      let best = null, bestRatio = 0.5;
+      coverRatios.forEach((r, card) => { if (r > bestRatio) { best = card; bestRatio = r; } });
+      if (best === active) return;
+      if (active) unmount(active);
+      active = best;
+      if (active) mount(active);
+    };
+    const coverIO = new IntersectionObserver((entries) => {
+      entries.forEach((e) => coverRatios.set(e.target.closest(".card"), e.isIntersecting ? e.intersectionRatio : 0));
+      clearTimeout(pick.t);
+      pick.t = setTimeout(pick, 250); // wait for scrolling to settle before loading a site
+    }, { threshold: [0, 0.25, 0.5, 0.75, 1] });
+    track.querySelectorAll(".card").forEach((card) => {
+      if (projects[card.dataset.i].embed) coverIO.observe(card.querySelector(".cover"));
+    });
+    window.addEventListener("resize", () => track.querySelectorAll(".cover-live").forEach((f) => {
+      f.style.transform = `scale(${f.parentElement.clientWidth / SITE_W})`;
+    }));
+  }
 
   /* ---------- live embed ---------- */
   const live = document.getElementById("live");

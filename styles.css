@@ -219,7 +219,15 @@ a { color: inherit; }
   content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .28; mix-blend-mode: multiply;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
-.cover:has(video)::after { display: none; } /* no blend layer over moving video */
+.cover:has(video)::after { display: none; }
+.cover-live {
+  position: absolute; left: 0; top: 0; z-index: 1;
+  border: 0; transform-origin: 0 0; background: transparent;
+  pointer-events: none; opacity: 0; transition: opacity .6s var(--ease);
+}
+.cover-live.is-ready { opacity: 1; }
+.cover-live.is-interactive { pointer-events: auto; }
+.cover:has(.cover-live)::after { display: none; } /* no blend layer over moving video */
 .shape-orb .cover-art { background: radial-gradient(circle at 58% 44%, var(--c2) 0 27%, transparent 27.4%), var(--c1); }
 .shape-arch .cover-art {
   background:
