@@ -25,7 +25,7 @@
   const track = document.getElementById("track");
   track.innerHTML = featured.map((p) => `
     <div class="card" data-i="${projects.indexOf(p)}">
-      <a class="card-link" ${linkAttrs(p)}>
+      <a class="card-link" ${linkAttrs(p)} data-cursor="${p.embed && canEmbed ? "Live" : "Visit"}">
         ${coverHTML(p)}
         <div class="card-label">
           <span class="no">Cat. ${pad(projects.indexOf(p) + 1)}</span>
@@ -40,7 +40,7 @@
   const rows = document.getElementById("rows");
   rows.innerHTML = projects.map((p, i) => `
     <li class="row" data-i="${i}">
-      <a ${linkAttrs(p)} title="${esc(p.summary)}">
+      <a ${linkAttrs(p)} title="${esc(p.summary)}" data-cursor="Visit">
         <span class="n">${pad(i + 1)}</span>
         <span class="t">${esc(p.title)}</span>
         <span class="c">${esc(p.client)}</span>
@@ -211,26 +211,70 @@
       requestAnimationFrame(loop);
     }
   }
+  /* ---------- intro: the name counts in, then lifts away ---------- */
+  const intro = document.getElementById("intro");
+  if (intro && gsap && !reduceMotion) {
+    if (lenis) lenis.stop();
+    const counter = { v: 0 };
+    const out = document.getElementById("intro-count");
+    gsap.timeline({ onComplete() { intro.classList.add("is-done"); if (lenis) lenis.start(); } })
+      .from(".intro-word", { yPercent: 100, duration: 0.7, ease: "power4.out" })
+      .to(counter, { v: 100, duration: 1, ease: "power2.inOut", onUpdate() { out.textContent = String(Math.round(counter.v)).padStart(3, "0"); } }, 0)
+      .to(intro, { yPercent: -100, duration: 0.9, ease: "power4.inOut" }, "+=0.1")
+      .from(".hero h1 .line > span", { yPercent: 110, duration: 1.1, stagger: 0.08, ease: "power4.out" }, "-=0.45")
+      .from([".hero-role", ".hero-side"], { autoAlpha: 0, y: 16, duration: 0.8, stagger: 0.08, ease: "power3.out" }, "-=0.8");
+  } else if (intro) intro.classList.add("is-done");
+
+  /* ---------- section jumps: a blue curtain wipes across ---------- */
+  const curtain = document.getElementById("curtain");
+  const jump = (target, id) => {
+    const offset = id === "#work" ? 0 : -64;
+    if (lenis) lenis.scrollTo(target, { offset, immediate: true, force: true });
+    else window.scrollTo(0, target.getBoundingClientRect().top + window.scrollY + offset);
+  };
   document.querySelectorAll('a[href^="#"]').forEach((a) => {
     a.addEventListener("click", (e) => {
       const id = a.getAttribute("href");
       const target = id.length > 1 ? document.querySelector(id) : null;
       if (!target) return;
       e.preventDefault();
-      if (lenis) lenis.scrollTo(target, { offset: id === "#work" ? 0 : -64 });
-      else target.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth" });
+      if (!gsap || reduceMotion) { jump(target, id); return; }
+      gsap.timeline()
+        .set(curtain, { transformOrigin: "bottom" })
+        .to(curtain, { scaleY: 1, duration: 0.5, ease: "power3.inOut" })
+        .add(() => jump(target, id))
+        .set(curtain, { transformOrigin: "top" })
+        .to(curtain, { scaleY: 0, duration: 0.6, ease: "power3.inOut", delay: 0.05 });
     });
   });
+
+  /* ---------- cursor: a dot that grows over links and names what a card does ---------- */
+  const cursor = document.getElementById("cursor");
+  if (cursor && window.matchMedia("(hover: hover) and (pointer: fine)").matches && !reduceMotion) {
+    const label = document.getElementById("cursor-label");
+    document.documentElement.classList.add("has-cursor");
+    let x = -100, y = -100, cx = x, cy = y;
+    window.addEventListener("pointermove", (e) => { x = e.clientX; y = e.clientY; cursor.classList.remove("is-hidden"); }, { passive: true });
+    document.addEventListener("mouseout", (e) => { if (!e.relatedTarget) cursor.classList.add("is-hidden"); }); // left the page or entered a live site
+    document.addEventListener("pointerover", (e) => {
+      const el = e.target.closest("[data-cursor], a, button");
+      const text = el && el.dataset.cursor;
+      cursor.classList.toggle("is-label", !!text);
+      cursor.classList.toggle("is-link", !!el && !text);
+      if (text) label.textContent = text;
+    });
+    const follow = () => {
+      cx += (x - cx) * 0.22; cy += (y - cy) * 0.22;
+      cursor.style.transform = `translate(${cx}px, ${cy}px)`;
+      requestAnimationFrame(follow);
+    };
+    follow();
+  }
 
   if (gsap && ST) {
     gsap.registerPlugin(ST);
 
     if (!reduceMotion) {
-      // Load sequence: headline lines rise out of their masks, the artwork unveils.
-      gsap.from(".hero h1 .line > span", { yPercent: 110, duration: 1.15, stagger: 0.09, ease: "power4.out", delay: 0.1 });
-      gsap.from(".artwork-frame", { clipPath: "inset(100% 0 0 0)", duration: 1.4, ease: "power4.inOut", delay: 0.2 });
-      gsap.from([".hero-intro", ".hero-meta", ".wall-label"], { y: 18, autoAlpha: 0, duration: 0.9, stagger: 0.08, ease: "power3.out", delay: 0.6 });
-
       // About statement fills in word by word as it scrolls past.
       const statement = document.querySelector(".statement");
       const wrapWords = (node) => {
@@ -297,107 +341,157 @@
     });
   }
 
-  /* ---------- hero ink-wash shader ---------- */
-  const canvas = document.getElementById("ink");
+  /* ---------- hero: the name as liquid type ---------- */
+  // The pointer leaves a fading trail (rendered into a small texture each frame);
+  // the name is pushed along that trail and splits into blue echoes.
+  const canvas = document.getElementById("liquid");
   const THREE = window.THREE;
   if (!THREE || !canvas) return;
 
   let renderer;
   try {
-    renderer = new THREE.WebGLRenderer({ canvas, antialias: false, alpha: false, powerPreference: "low-power" });
+    renderer = new THREE.WebGLRenderer({ canvas, antialias: false, alpha: false, powerPreference: "high-performance" });
   } catch (e) { return; }
-  renderer.setPixelRatio(1);
+  const dpr = Math.min(window.devicePixelRatio, 1.5);
+  renderer.setPixelRatio(dpr);
+  const hero = canvas.parentElement;
+  const css = (name) => new THREE.Color(getComputedStyle(document.documentElement).getPropertyValue(name).trim());
 
-  const scene = new THREE.Scene();
-  const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
-  const css = (name) => new THREE.Color(getComputedStyle(document.documentElement).getPropertyValue(name).trim() || "#000");
-  const uniforms = {
-    uTime: { value: 0 },
-    uRes: { value: new THREE.Vector2(1, 1) },
-    uMouse: { value: new THREE.Vector2(0.62, 0.4) },
-    uHover: { value: 0 },
-    uPaper: { value: css("--paper") },
-    uInk: { value: css("--ink") },
-    uKlein: { value: css("--klein") }
+  const textCanvas = document.createElement("canvas");
+  const tctx = textCanvas.getContext("2d");
+  const textTex = new THREE.CanvasTexture(textCanvas);
+  textTex.minFilter = THREE.LinearFilter;
+  textTex.generateMipmaps = false;
+  const drawName = () => {
+    const w = canvas.clientWidth, h = canvas.clientHeight;
+    if (!w || !h) return;
+    textCanvas.width = Math.round(w * dpr); textCanvas.height = Math.round(h * dpr);
+    const narrow = window.innerWidth < 760;
+    const size = Math.min(window.innerWidth * (narrow ? 0.62 : 0.42), h * (narrow ? 0.5 : 0.6)) * dpr;
+    tctx.clearRect(0, 0, textCanvas.width, textCanvas.height);
+    tctx.fillStyle = "#fff";
+    tctx.textAlign = "center";
+    tctx.textBaseline = "middle";
+    tctx.font = `800 ${size}px "Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif`;
+    if ("fontStretch" in tctx) tctx.fontStretch = "condensed";
+    if ("letterSpacing" in tctx) tctx.letterSpacing = `${-0.05 * size}px`;
+    tctx.fillText("Esi", textCanvas.width / 2, textCanvas.height * 0.44 + size * 0.04); // sits a little high, clear of the headline
+    textTex.needsUpdate = true;
   };
-  const material = new THREE.ShaderMaterial({
-    uniforms,
-    vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0., 1.); }`,
+
+  const quad = new THREE.PlaneGeometry(2, 2);
+  const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+  const vertexShader = `varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0., 1.); }`;
+
+  const rtOpts = { type: THREE.HalfFloatType, minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, depthBuffer: false };
+  let trailA = new THREE.WebGLRenderTarget(256, 160, rtOpts);
+  let trailB = new THREE.WebGLRenderTarget(256, 160, rtOpts);
+  const trailUniforms = {
+    uPrev: { value: trailA.texture },
+    uMouse: { value: new THREE.Vector2(0.5, 0.5) },
+    uVel: { value: new THREE.Vector2() },
+    uStrength: { value: 0 },
+    uAspect: { value: 1.6 }
+  };
+  const trailScene = new THREE.Scene();
+  trailScene.add(new THREE.Mesh(quad, new THREE.ShaderMaterial({
+    uniforms: trailUniforms, vertexShader,
     fragmentShader: `
       precision highp float;
-      uniform float uTime, uHover;
-      uniform vec2 uRes, uMouse;
-      uniform vec3 uPaper, uInk, uKlein;
+      uniform sampler2D uPrev; uniform vec2 uMouse, uVel; uniform float uStrength, uAspect;
+      varying vec2 vUv;
+      void main(){
+        vec3 prev = texture2D(uPrev, vUv).rgb;
+        vec2 d = (vUv - uMouse) * vec2(uAspect, 1.);
+        float brush = exp(-dot(d, d) * 160.) * uStrength;
+        vec3 next = prev * vec3(.955, .96, .96);   // r: ink amount, gb: push direction
+        next.r += brush;
+        next.gb += uVel * brush * 7.;
+        gl_FragColor = vec4(clamp(next, vec3(0., -4., -4.), vec3(1.5, 4., 4.)), 1.);
+      }`
+  })));
+
+  const uniforms = {
+    uText: { value: textTex },
+    uTrail: { value: trailB.texture },
+    uTime: { value: 0 },
+    uRes: { value: new THREE.Vector2(1, 1) },
+    uBg: { value: css("--paper") },
+    uInk: { value: css("--ink") },
+    uBlue: { value: css("--klein") }
+  };
+  const scene = new THREE.Scene();
+  scene.add(new THREE.Mesh(quad, new THREE.ShaderMaterial({
+    uniforms, vertexShader,
+    fragmentShader: `
+      precision highp float;
+      uniform sampler2D uText, uTrail; uniform vec3 uBg, uInk, uBlue; uniform float uTime; uniform vec2 uRes;
       varying vec2 vUv;
       float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
-      float noise(vec2 p){
-        vec2 i = floor(p), f = fract(p); vec2 u = f * f * (3. - 2. * f);
-        return mix(mix(hash(i), hash(i + vec2(1, 0)), u.x), mix(hash(i + vec2(0, 1)), hash(i + vec2(1, 1)), u.x), u.y);
-      }
-      float fbm(vec2 p){
-        float v = 0., a = .5; mat2 r = mat2(.8, -.6, .6, .8);
-        for (int i = 0; i < 4; i++){ v += a * noise(p); p = r * p * 2.02; a *= .5; }
-        return v;
-      }
       void main(){
-        vec2 aspect = vec2(uRes.x / uRes.y, 1.);
-        vec2 p = (vUv - .5) * aspect * 2.4;
-        vec2 m = (uMouse - .5) * aspect * 2.4;
-        float t = uTime * .05;
-        vec2 q = vec2(fbm(p + t), fbm(p + vec2(5.2, 1.3) - t));
-        vec2 r = vec2(fbm(p + 3. * q + vec2(1.7, 9.2) + t * 1.4), fbm(p + 3. * q + vec2(8.3, 2.8) - t));
-        float f = fbm(p + 3. * r);
-        float d = length(p - m);
-        f += uHover * .32 * exp(-d * d * 2.2);
-        float ink = smoothstep(.5, .62, f);
-        float rim = smoothstep(.47, .5, f) - smoothstep(.5, .55, f);
-        vec3 col = mix(uPaper, uKlein, ink);
-        col = mix(col, uInk, rim * .12);
-        col = mix(col, uKlein * .55, smoothstep(.72, .95, f) * .65);
-        col += (hash(vUv * uRes + fract(uTime)) - .5) * .05;
+        vec3 t = texture2D(uTrail, vUv).rgb;
+        vec2 drift = vec2(sin(vUv.y * 7. + uTime * .5), cos(vUv.x * 5. - uTime * .4)) * .0025;
+        vec2 flow = t.gb * .05 + drift;
+        float m0 = texture2D(uText, vUv - flow).r;
+        float m1 = texture2D(uText, vUv - flow * 2.3).r;
+        float m2 = texture2D(uText, vUv - flow * 3.6).r;
+        vec3 col = uBg + uBlue * min(t.r, 1.) * .16;
+        col = mix(col, uBlue * .55, m2 * .7);
+        col = mix(col, uBlue, m1);
+        col = mix(col, uInk, m0);
+        col += (hash(vUv * uRes + fract(uTime)) - .5) * .035;
         gl_FragColor = vec4(col, 1.);
       }`
-  });
-  scene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), material));
+  })));
 
   const resize = () => {
     const w = canvas.clientWidth, h = canvas.clientHeight;
     if (!w || !h) return;
     renderer.setSize(w, h, false);
-    uniforms.uRes.value.set(w * renderer.getPixelRatio(), h * renderer.getPixelRatio());
+    uniforms.uRes.value.set(w * dpr, h * dpr);
+    trailUniforms.uAspect.value = w / h;
+    drawName();
   };
-  new ResizeObserver(() => { resize(); if (reduceMotion) renderer.render(scene, camera); }).observe(canvas);
+  new ResizeObserver(resize).observe(canvas);
   resize();
 
-  const refreshColors = () => {
-    uniforms.uPaper.value = css("--paper");
-    uniforms.uInk.value = css("--ink");
-    uniforms.uKlein.value = css("--klein");
-    if (reduceMotion) renderer.render(scene, camera);
+  const frame = () => {
+    trailUniforms.uPrev.value = trailA.texture;
+    renderer.setRenderTarget(trailB);
+    renderer.render(trailScene, camera);
+    renderer.setRenderTarget(null);
+    uniforms.uTrail.value = trailB.texture;
+    renderer.render(scene, camera);
+    [trailA, trailB] = [trailB, trailA];
   };
-  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", refreshColors);
-  new MutationObserver(refreshColors).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+  const ready = () => { drawName(); frame(); hero.classList.add("is-gl"); };
+  (document.fonts ? document.fonts.ready : Promise.resolve()).then(ready);
+  if (reduceMotion) return;
 
-  if (reduceMotion) { uniforms.uTime.value = 40; renderer.render(scene, camera); return; }
-
-  const target = new THREE.Vector2(0.62, 0.4);
-  let hoverTarget = 0, visible = true;
-  canvas.addEventListener("pointermove", (e) => {
+  const pointer = new THREE.Vector2(0.5, 0.5), last = new THREE.Vector2(0.5, 0.5);
+  let lastMove = -1e9, visible = true;
+  hero.addEventListener("pointermove", (e) => {
     const b = canvas.getBoundingClientRect();
-    target.set((e.clientX - b.left) / b.width, 1 - (e.clientY - b.top) / b.height);
-    hoverTarget = 1;
-  });
-  canvas.addEventListener("pointerleave", () => (hoverTarget = 0));
+    pointer.set((e.clientX - b.left) / b.width, 1 - (e.clientY - b.top) / b.height);
+    lastMove = performance.now();
+  }, { passive: true });
   new IntersectionObserver(([entry]) => (visible = entry.isIntersecting)).observe(canvas);
 
   const clock = new THREE.Clock();
-  uniforms.uTime.value = 12;
   renderer.setAnimationLoop(() => {
     const dt = Math.min(clock.getDelta(), 0.05);
     if (!visible || document.hidden) return;
-    uniforms.uTime.value += dt;
-    uniforms.uMouse.value.lerp(target, 0.06);
-    uniforms.uHover.value += (hoverTarget - uniforms.uHover.value) * 0.05;
-    renderer.render(scene, camera);
+    const t = (uniforms.uTime.value += dt);
+    const idle = performance.now() - lastMove > 2500;
+    if (idle) { // nobody is moving: a slow ghost hand keeps the name alive
+      pointer.set(0.5 + Math.sin(t * 0.45) * 0.32, 0.5 + Math.sin(t * 0.7) * 0.18);
+    }
+    const vel = pointer.clone().sub(last);
+    const speed = Math.min(vel.length() * 40, 1);
+    trailUniforms.uMouse.value.copy(pointer);
+    trailUniforms.uVel.value.copy(vel.clampLength(0, 0.05));
+    trailUniforms.uStrength.value = idle ? speed * 0.5 : speed;
+    last.copy(pointer);
+    frame();
   });
 })();

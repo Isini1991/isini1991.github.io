@@ -26,28 +26,23 @@
 </header>
 
 <main id="top">
-  <section class="hero wrap">
-    <div class="hero-copy">
-      <p class="label">Web Designer &amp; Creative Developer</p>
-      <h1>
-        <span class="line"><span>Digital experiences</span></span>
-        <span class="line"><span>for <em>artists</em> &amp;</span></span>
-        <span class="line"><span>independent brands</span></span>
-      </h1>
-      <p class="hero-intro">I design and build websites for photographers, filmmakers, musicians and independent labels. Sites that look like the work and move like it too.</p>
-      <div class="hero-meta label">
-        <span>Sites for artists, musicians and labels</span>
-        <span>Design · Code · Motion · WebGL</span>
+  <section class="hero" aria-labelledby="hero-title">
+    <canvas id="liquid" aria-hidden="true"></canvas>
+    <div class="hero-word" aria-hidden="true">Esi</div>
+    <div class="hero-overlay wrap">
+      <p class="label hero-role"><span>Web Designer &amp; Creative Developer</span><span class="hero-hint">Move through the name</span></p>
+      <div class="hero-bottom">
+        <h1 id="hero-title">
+          <span class="line"><span>Digital experiences</span></span>
+          <span class="line"><span>for <em>artists</em> &amp;</span></span>
+          <span class="line"><span>independent brands</span></span>
+        </h1>
+        <div class="hero-side">
+          <p class="hero-intro">I design and build websites for photographers, filmmakers, musicians and independent labels. Sites that look like the work and move like it too.</p>
+          <a class="scroll-cue label" href="#work">Scroll to the work</a>
+        </div>
       </div>
     </div>
-    <figure class="artwork">
-      <div class="artwork-frame"><canvas id="ink" aria-label="A live ink-wash animation that follows your cursor"></canvas></div>
-      <figcaption class="wall-label">
-        <b>Ink Study No. 7</b>
-        <span>Real-time WebGL, GLSL shader</span>
-        <i>Move your cursor across the surface.</i>
-      </figcaption>
-    </figure>
   </section>
 
   <section class="gallery" id="work">
@@ -105,6 +100,9 @@
   </div>
 </footer>
 
+<div class="intro" id="intro" aria-hidden="true"><span class="intro-word">Esi</span><span class="intro-count label" id="intro-count">000</span></div>
+<div class="curtain" id="curtain" aria-hidden="true"></div>
+<div class="cursor" id="cursor" aria-hidden="true"><span class="cursor-label" id="cursor-label"></span></div>
 <div class="preview" id="preview" aria-hidden="true"></div>
 
 <dialog class="live" id="live" aria-label="Live site">
