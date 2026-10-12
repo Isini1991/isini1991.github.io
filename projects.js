@@ -46,6 +46,54 @@ window.PROJECTS = [
     featured: true
   },
   {
+    title: "Tristan Bejawn",
+    client: "Photographer and director of photography, London",
+    year: "",
+    medium: "Portfolio, documentary series, motion",
+    summary: "A portfolio for portrait, documentary and commercial work, with room for long travel series and film photography.",
+    url: "https://www.tristanbejawn.com/",
+    video: "",
+    embed: true,
+    interactive: true,
+    live: true,
+    image: "media/web/tristanbejawn-poster.webp",
+    colors: ["#D9D6D0", "#2B2B2B"],
+    shape: "stripes",
+    featured: true
+  },
+  {
+    title: "The Monolith Project",
+    client: "Immersive 3D experience",
+    year: "",
+    medium: "WebGL world, custom shaders, 3D",
+    summary: "A browser-based 3D journey where a silent monolith wakes across the stars. Hand-drawn 2D illustrations by Zao Yu Lin, rebuilt as 3D scenes with custom shaders.",
+    url: "https://themonolithproject.net/",
+    video: "",
+    embed: true,
+    interactive: false,
+    live: true,
+    image: "media/web/themonolithproject-scene-poster.webp",
+    colors: ["#1B1F3A", "#F0C987"],
+    shape: "orb",
+    featured: true
+  },
+  {
+    title: "VIGOR",
+    client: "Producer, beatmaker and rapper, Ankara",
+    year: "",
+    medium: "Artist site, track player",
+    summary: "A dark, gothic site for a producer selling beats and production, built around a monolith image and bands of ASCII-style symbols.",
+    url: "https://vigorvigorous.com/",
+    video: "",
+    embed: false,
+    interactive: false,
+    live: false,
+    image: "media/web/vigorvigorous-poster.webp",
+    colors: ["#0A0A0A", "#7A7A7A"],
+    shape: "arch",
+    featured: true
+  },
+  {
     title: "DJ Lofi",
     client: "DJ and record curator, Portland",
     year: "",
@@ -142,22 +190,6 @@ window.PROJECTS = [
     featured: true
   },
   {
-    title: "Tristan Bejawn",
-    client: "Photographer and director of photography, London",
-    year: "",
-    medium: "Portfolio, documentary series, motion",
-    summary: "A portfolio for portrait, documentary and commercial work, with room for long travel series and film photography.",
-    url: "https://www.tristanbejawn.com/",
-    video: "",
-    embed: true,
-    interactive: true,
-    live: true,
-    image: "media/web/tristanbejawn-poster.webp",
-    colors: ["#D9D6D0", "#2B2B2B"],
-    shape: "stripes",
-    featured: true
-  },
-  {
     title: "Brent Foster",
     client: "Commercial and documentary film director",
     year: "",
@@ -188,22 +220,6 @@ window.PROJECTS = [
     colors: ["#5A4632", "#E9DCC6"],
     shape: "dots",
     featured: false
-  },
-  {
-    title: "The Monolith Project",
-    client: "Immersive 3D experience",
-    year: "",
-    medium: "WebGL world, custom shaders, 3D",
-    summary: "A browser-based 3D journey where a silent monolith wakes across the stars. Hand-drawn 2D illustrations by Zao Yu Lin, rebuilt as 3D scenes with custom shaders.",
-    url: "https://themonolithproject.net/",
-    video: "",
-    embed: true,
-    interactive: false,
-    live: true,
-    image: "media/web/themonolithproject-scene-poster.webp",
-    colors: ["#1B1F3A", "#F0C987"],
-    shape: "orb",
-    featured: true
   },
   {
     title: "Nude Club Records",
@@ -268,21 +284,5 @@ window.PROJECTS = [
     colors: ["#E8E3DA", "#2E2A26"],
     shape: "arch",
     featured: false
-  },
-  {
-    title: "VIGOR",
-    client: "Producer, beatmaker and rapper, Ankara",
-    year: "",
-    medium: "Artist site, track player",
-    summary: "A dark, gothic site for a producer selling beats and production, built around a monolith image and bands of ASCII-style symbols.",
-    url: "https://vigorvigorous.com/",
-    video: "",
-    embed: false,
-    interactive: false,
-    live: false,
-    image: "media/web/vigorvigorous-poster.webp",
-    colors: ["#0A0A0A", "#7A7A7A"],
-    shape: "arch",
-    featured: true
   }
 ];
