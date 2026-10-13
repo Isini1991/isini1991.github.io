@@ -1,0 +1,679 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Fahad Al Nabhan</title>
+<meta name="description" content="Wildlife photographer and visual artist from Kuwait. مصوّر الحياة البرية والفنان البصري فهد النبهان.">
+<meta property="og:title" content="Fahad Al Nabhan · فهد النبهان">
+<meta property="og:description" content="Wildlife photographer and visual artist from Kuwait.">
+<meta property="og:image" content="https://isini1991.github.io/fahad-alnabhan/assets/og.jpg">
+<meta property="og:url" content="https://isini1991.github.io/fahad-alnabhan/">
+<meta property="og:type" content="website">
+<meta name="twitter:image" content="https://isini1991.github.io/fahad-alnabhan/assets/og.jpg">
+<meta name="robots" content="noindex">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Aref+Ruqaa:wght@400;700&family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,500;1,6..96,400;1,6..96,500&family=DM+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@300;400;500&family=Instrument+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: one long night. Black "Wild" chapters lit like his low-key portraits, broken by a pastel "Studio" chapter where reality bends. */
+:root{
+  --void:#000;            /* the exact black of his low-key frames */
+  --night:#0d0a08;        /* warm off-black for quieter chapters */
+  --bone:#efe5d6;         /* primary text */
+  --dust:#a39580;         /* secondary text */
+  --amber:#d9a04a;        /* eye-glint accent */
+  --ink:#1b1311;          /* text on pastel */
+  --stage:#e3cfda;        /* Studio chapter ground, changes per frame */
+  --display:"Bodoni Moda","Didot","Bodoni 72",Georgia,serif;
+  --body:"Instrument Sans","Helvetica Neue",Arial,sans-serif;
+  --mono:"DM Mono",ui-monospace,Menlo,monospace;
+  --ar-display:"Aref Ruqaa","Amiri","Times New Roman",serif;
+  --ar-body:"IBM Plex Sans Arabic","Geeza Pro","Segoe UI",Tahoma,sans-serif;
+  --gutter:clamp(16px,5vw,72px);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;background:var(--void)}
+body{margin:0;background:var(--void);color:var(--bone);font:400 1rem/1.6 var(--body);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+img,video{max-width:100%;display:block}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--amber);outline-offset:3px}
+
+/* language */
+:root:not([lang="ar"]) [data-l="ar"]{display:none!important}
+:root[lang="ar"] [data-l="en"]{display:none!important}
+[data-l="ar"]{font-family:var(--ar-body);letter-spacing:0!important;direction:rtl;unicode-bidi:isolate}
+:root[lang="ar"] body{font-family:var(--ar-body)}
+.ar-only{font-family:var(--ar-display)}
+
+/* grain */
+body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:50;opacity:.07;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+
+.wrap{padding-inline:var(--gutter)}
+.mono{font-family:var(--mono);font-size:.72rem;letter-spacing:.14em;text-transform:uppercase}
+.eyebrow{font-family:var(--mono);font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;color:var(--amber)}
+h1,h2,h3{font-family:var(--display);font-weight:400;text-wrap:balance;margin:0;line-height:1.02}
+h2 [data-l="ar"],h3 [data-l="ar"],.quote [data-l="ar"]{font-family:var(--ar-display);line-height:1.5}
+p{margin:0}
+
+/* nav */
+.nav{direction:ltr;position:fixed;inset-inline:0;top:0;z-index:40;display:flex;align-items:center;justify-content:space-between;gap:16px;
+  padding:calc(14px + env(safe-area-inset-top,0px)) var(--gutter) 14px;mix-blend-mode:difference;color:#fff}
+.mark{font-family:var(--display);font-style:italic;font-size:1.25rem;text-decoration:none;white-space:nowrap}
+.lang{background:none;border:1px solid currentColor;color:inherit;border-radius:99px;padding:5px 12px;font:500 .72rem/1 var(--mono);letter-spacing:.1em;cursor:pointer}
+.lang b{font-weight:500;opacity:.45}
+:root:not([lang="ar"]) .lang .en,:root[lang="ar"] .lang .ar{opacity:1}
+.lang .ar{font-family:var(--ar-body);font-size:.85rem}
+/* mode dial: the menu is a camera mode dial, half of it peeking from the page edge */
+.dial-wrap{--d:clamp(210px,24vw,280px);position:fixed;z-index:45;top:50%;right:calc(var(--d) / -2);transform:translateY(-50%);width:var(--d);height:var(--d);direction:ltr;touch-action:none;user-select:none;-webkit-user-select:none}
+.dial{position:absolute;inset:0;border-radius:50%;cursor:grab;
+  background:radial-gradient(circle closest-side,#24201c 0 70%,#100e0c 70.5% 85%,transparent 85.5%),
+    repeating-conic-gradient(from 0deg,#3a342e 0 1.6deg,#0b0908 1.6deg 3.6deg);
+  box-shadow:0 0 0 1px rgba(239,229,214,.14),0 20px 60px rgba(0,0,0,.6),inset 0 0 0 1px rgba(255,255,255,.05);
+  transition:transform .55s cubic-bezier(.3,1.4,.4,1)}
+.dial.dragging{cursor:grabbing;transition:none}
+.dial::before{content:"";position:absolute;inset:23%;border-radius:50%;background:radial-gradient(circle at 35% 30%,#3b352f,#141210 70%);box-shadow:inset 0 2px 3px rgba(255,255,255,.08),inset 0 -6px 14px rgba(0,0,0,.6)}
+.dial::after{content:"";position:absolute;inset:36%;border-radius:50%;background:repeating-radial-gradient(circle,#26221e 0 1px,#1a1714 1px 3px);opacity:.9}
+.mode{position:absolute;left:50%;top:50%;width:46px;height:28px;margin:-14px 0 0 -23px;display:grid;place-items:center;
+  background:none;border:0;padding:0;color:rgba(239,229,214,.6);font:500 .78rem/1 var(--mono);letter-spacing:.06em;cursor:pointer}
+.mode:hover{color:var(--bone)}
+.mode.on{color:var(--amber);text-shadow:0 0 12px rgba(217,160,74,.6)}
+.notch{position:absolute;top:50%;left:-14px;width:0;height:0;margin-top:-7px;border-block:7px solid transparent;border-inline-start:10px solid var(--amber);filter:drop-shadow(0 0 6px rgba(217,160,74,.7))}
+.readout{position:absolute;top:50%;right:calc(100% + 22px);transform:translateY(-50%);text-align:end;white-space:nowrap;pointer-events:none;
+  font-family:var(--mono);font-size:.68rem;letter-spacing:.18em;text-transform:uppercase;color:var(--bone);mix-blend-mode:difference}
+.readout{transition:opacity .5s}
+.readout.idle{opacity:0}
+.dial-wrap:hover .readout{opacity:1}
+.readout b{display:block;font-family:var(--display);font-style:italic;font-weight:400;font-size:1.35rem;letter-spacing:0;text-transform:none}
+.readout [data-l="ar"]{font-family:var(--ar-display);font-style:normal}
+@media (max-width:820px) and (orientation:portrait){
+  .dial-wrap{--d:200px;top:auto;right:auto;left:50%;bottom:calc(var(--d) / -2 - 28px + env(safe-area-inset-bottom,0px));transform:translateX(-50%)}
+  .notch{top:-14px;left:50%;margin:0 0 0 -7px;border-block:none;border-inline:7px solid transparent;border-top:10px solid var(--amber)}
+  .readout{top:auto;bottom:calc(100% + 18px);right:auto;left:50%;transform:translateX(-50%);text-align:center}
+}
+@media (min-width:821px){
+  .wrap{padding-right:calc(clamp(210px,24vw,280px) / 2 + 32px)}
+  .plate{right:calc(clamp(210px,24vw,280px) / 2 + 32px)}
+}
+:root[dir="rtl"] .plate{right:auto;left:var(--gutter);text-align:left}
+/* shutter: hexagonal aperture closing and opening between sections */
+.shutter{position:fixed;inset:0;z-index:60;background:#000;pointer-events:none;visibility:hidden}
+.shutter.go{visibility:visible}
+
+/* hero */
+.hero{position:relative;min-height:min(100svh,1000px);display:grid;align-items:end;overflow:hidden;background:var(--void);isolation:isolate}
+.hero-media{position:absolute;inset-block:0;inset-inline-end:0;width:min(62%,900px);z-index:-1;cursor:none}
+.hero-media img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 30%}
+.hero-media .dim{filter:brightness(.22) saturate(.6)}
+.hero-media .lit{filter:brightness(1.12) contrast(1.05);
+  -webkit-mask-image:radial-gradient(circle var(--r,220px) at var(--x,50%) var(--y,32%),#000 0,rgba(0,0,0,.85) 35%,transparent 72%);
+          mask-image:radial-gradient(circle var(--r,220px) at var(--x,50%) var(--y,32%),#000 0,rgba(0,0,0,.85) 35%,transparent 72%)}
+.hero-media::after{content:"";position:absolute;inset:0;background:linear-gradient(to right,var(--void) 0,transparent 30%),linear-gradient(to top,var(--void) 0,transparent 25%)}
+:root[dir="rtl"] .hero-media::after{background:linear-gradient(to left,var(--void) 0,transparent 30%),linear-gradient(to top,var(--void) 0,transparent 25%)}
+.hero-copy{padding-block:120px clamp(48px,9vh,96px);max-width:820px;display:grid;gap:22px}
+.hero h1{font-size:clamp(3.4rem,10.5vw,10rem);letter-spacing:-.02em;line-height:.9}
+.hero h1 i{color:var(--amber)}
+.hero .arname{font-family:var(--ar-display);font-size:clamp(2.2rem,5.5vw,4.6rem);line-height:1.1;color:var(--bone);opacity:.9;direction:rtl;text-align:left}
+.hero .line{font-family:var(--display);font-style:italic;font-size:clamp(1.15rem,2vw,1.55rem);color:var(--dust);max-width:28ch}
+.hero .line [data-l="ar"]{font-family:var(--ar-display);font-style:normal;font-size:1.25em}
+.hint{display:flex;align-items:center;gap:12px;color:var(--dust)}
+.hint::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--amber);box-shadow:0 0 18px 4px rgba(217,160,74,.55);animation:pulse 2.4s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.35}}
+.plate{position:absolute;right:var(--gutter);bottom:clamp(20px,4vh,40px);color:var(--dust);text-align:right;display:grid;gap:4px}
+.plate em{font-family:var(--display);font-style:italic;font-size:.95rem;text-transform:none;letter-spacing:0;color:var(--bone)}
+@media (max-width:820px) and (orientation:portrait){
+  .hero{align-items:end}
+  .hero-media{width:100%;cursor:auto}
+  .hero-media::after{background:linear-gradient(to top,var(--void) 8%,rgba(0,0,0,.4) 50%,transparent 75%)!important}
+  .hero-copy{padding-top:52vh}
+  .plate{display:none}
+}
+
+/* manifesto */
+.manifesto{padding-block:clamp(90px,16vh,180px);background:var(--void)}
+.manifesto .quote{font-family:var(--display);font-size:clamp(2rem,5.6vw,5.2rem);line-height:1.08;letter-spacing:-.01em;max-width:16ch}
+.manifesto .quote [data-l="ar"]{max-width:20ch}
+.manifesto .quote span.er{color:var(--amber);font-style:italic}
+.manifesto .by{margin-top:36px;display:flex;gap:18px;align-items:center;color:var(--dust)}
+.manifesto .by img{width:44px;height:44px;border-radius:50%;filter:grayscale(.3)}
+
+/* chapters */
+.chapter-head{display:grid;grid-template-columns:auto 1fr;gap:clamp(16px,4vw,60px);align-items:end;padding-block:clamp(60px,10vh,120px) clamp(36px,6vh,64px);border-top:1px solid rgba(239,229,214,.12)}
+.chapter-head .num{font-family:var(--display);font-style:italic;font-size:clamp(4rem,12vw,11rem);line-height:.8;color:var(--amber)}
+.chapter-head h2{font-size:clamp(2.2rem,5.4vw,4.8rem)}
+.chapter-head p{color:var(--dust);margin-top:14px;max-width:52ch}
+@media (max-width:600px){.chapter-head{grid-template-columns:1fr}}
+
+figure{margin:0}
+figcaption{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;padding-top:12px;color:var(--dust)}
+figcaption .latin{font-family:var(--display);font-style:italic;font-size:1rem;color:var(--bone);text-transform:none;letter-spacing:0}
+.frame{overflow:hidden;background:#000}
+.frame img{width:100%;height:100%;object-fit:cover;transition:transform 1.4s cubic-bezier(.2,.7,.1,1),filter .8s}
+.frame:hover img{transform:scale(1.035)}
+
+/* wild pair */
+.pair{display:grid;grid-template-columns:1.05fr 1fr;gap:clamp(16px,3vw,40px);align-items:end;padding-bottom:clamp(60px,10vh,120px)}
+.pair .tall .frame{aspect-ratio:1165/1325}
+.pair .wide{display:grid;gap:clamp(24px,4vw,48px)}
+.pair .wide .frame{aspect-ratio:3/2}
+.pair blockquote{margin:0;font-family:var(--display);font-style:italic;font-size:clamp(1.5rem,2.8vw,2.4rem);line-height:1.2;max-width:18ch}
+.pair blockquote [data-l="ar"]{font-family:var(--ar-display);font-style:normal}
+@media (max-width:760px){.pair{grid-template-columns:1fr}}
+
+/* nocturne */
+.nocturne{background:var(--void);padding-bottom:clamp(60px,10vh,120px)}
+.nocturne-head{display:flex;justify-content:space-between;align-items:end;gap:24px;flex-wrap:wrap;padding-bottom:36px}
+.nocturne-head h3{font-size:clamp(1.8rem,4vw,3.4rem);font-style:italic;max-width:18ch}
+.nocturne-head h3 [data-l="ar"]{font-style:normal}
+.nocturne-head p{color:var(--dust);max-width:34ch}
+.quad{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:clamp(8px,1.4vw,18px)}
+.quad .frame{aspect-ratio:3/4}
+.quad .frame img{filter:brightness(.78)}
+.quad figure:hover .frame img{filter:brightness(1.08)}
+.quad figure:nth-child(even){transform:translateY(clamp(20px,5vw,70px))}
+@media (max-width:760px){.quad{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* scrub */
+.scrub{position:relative;height:260vh;background:var(--night)}
+.scrub-stage{position:sticky;top:0;height:100svh;display:grid;grid-template-columns:1fr minmax(0,1.1fr);gap:clamp(20px,5vw,80px);align-items:center}
+.scrub-stage .txt{display:grid;gap:22px}
+.scrub-stage h3{font-size:clamp(2rem,4.6vw,4.2rem);font-style:italic}
+.scrub-stage h3 [data-l="ar"]{font-style:normal}
+.scrub-stage .txt p{color:var(--dust);max-width:40ch}
+.ticks{display:flex;gap:8px}
+.ticks i{width:42px;height:2px;background:rgba(239,229,214,.2);position:relative;overflow:hidden}
+.ticks i.on{background:var(--amber)}
+.scrub-frames{position:relative;aspect-ratio:3/4;max-height:82svh;justify-self:center;width:100%;max-width:620px}
+.scrub-frames img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .5s}
+.scrub-frames img.on{opacity:1}
+@media (max-width:760px){.scrub{height:220vh}.scrub-stage{grid-template-columns:1fr;align-content:center;gap:20px}.scrub-frames{max-height:58svh;width:auto}}
+
+/* studio */
+.studio{background:var(--stage);color:var(--ink);transition:background-color 1.2s ease}
+.studio .chapter-head{border-top:none}
+.studio .chapter-head .num{color:var(--ink)}
+.studio .chapter-head p,.studio figcaption{color:rgba(27,19,17,.66)}
+.studio figcaption .latin{color:var(--ink)}
+.studio .credo{font-family:var(--display);font-size:clamp(1.7rem,4vw,3.6rem);line-height:1.12;max-width:22ch;padding-bottom:clamp(50px,8vh,100px)}
+.studio .credo [data-l="ar"]{font-family:var(--ar-display)}
+.studio .credo em{font-style:italic}
+.cosmic{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(20px,5vw,90px);padding-bottom:clamp(60px,12vh,140px)}
+.cosmic figure:nth-child(even){margin-top:clamp(40px,14vw,220px)}
+.cosmic .frame{aspect-ratio:1;background:transparent;box-shadow:0 40px 80px -40px rgba(27,19,17,.45)}
+.cosmic h3{font-style:italic;font-size:clamp(2.4rem,7vw,6.5rem);grid-column:1/-1;letter-spacing:-.02em}
+.cosmic h3 [data-l="ar"]{font-style:normal}
+@media (max-width:600px){.cosmic{grid-template-columns:1fr}.cosmic figure:nth-child(even){margin-top:0}}
+.gravity{background:#3d0005;color:var(--bone);padding-block:clamp(70px,12vh,140px)}
+.gravity-inner{display:grid;grid-template-columns:1fr 1fr 0.9fr;gap:clamp(12px,2vw,28px);align-items:end}
+.gravity .frame{aspect-ratio:3/4;background:#3d0005}
+.gravity h3{font-style:italic;font-size:clamp(2rem,4vw,3.6rem);line-height:1.05}
+.gravity h3 [data-l="ar"]{font-style:normal}
+.gravity .side{display:grid;gap:18px;align-self:center;padding-inline-start:clamp(0px,2vw,30px)}
+.gravity .side p{color:rgba(239,229,214,.7)}
+@media (max-width:760px){.gravity-inner{grid-template-columns:1fr 1fr}.gravity .side{grid-column:1/-1;grid-row:1}}
+
+/* heritage */
+.heritage{background:var(--night)}
+.portraits{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(20px,4vw,64px);padding-bottom:clamp(60px,10vh,120px)}
+.portraits .frame{aspect-ratio:3/4;outline:1px solid rgba(217,160,74,.35);outline-offset:clamp(8px,1.2vw,16px)}
+.portraits figure{display:grid;gap:22px}
+.portraits h3{font-size:clamp(1.5rem,2.6vw,2.2rem);margin-top:14px}
+.portraits h3 [data-l="ar"]{font-family:var(--ar-display)}
+.portraits .cap{color:var(--dust);max-width:52ch;font-size:.95rem}
+.portraits .cap[dir="rtl"]{font-family:var(--ar-body);font-size:1.02rem;line-height:1.9}
+@media (max-width:640px){.portraits{grid-template-columns:1fr}}
+
+/* grand prix */
+.gp{background:var(--void);padding-bottom:clamp(60px,10vh,120px)}
+.reel{position:relative;aspect-ratio:1440/785;width:min(100%,calc(86svh * 1440 / 785));margin-inline:auto;overflow:hidden;background:#000}
+.reel img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;opacity:0;transition:opacity 1.2s ease}
+.reel img.on{opacity:1}
+.reel-bar{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;padding-top:18px;color:var(--dust)}
+.reel-bar .ctrl{display:flex;gap:8px;align-items:center}
+.reel-bar button{background:none;border:1px solid rgba(239,229,214,.25);color:var(--bone);width:40px;height:40px;border-radius:50%;cursor:pointer;font:1rem var(--mono)}
+.reel-bar button:hover{border-color:var(--amber);color:var(--amber)}
+.gp blockquote{margin:28px 0 0;font-family:var(--display);font-style:italic;font-size:clamp(1.4rem,3vw,2.4rem);max-width:30ch}
+.gp blockquote [data-l="ar"]{font-family:var(--ar-display);font-style:normal}
+
+/* motion */
+.motion{background:var(--night);padding-bottom:clamp(60px,10vh,120px)}
+.films{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(16px,4vw,64px);max-width:900px}
+.film{display:grid;gap:14px}
+.film .screen{aspect-ratio:9/16;overflow:hidden;border-radius:22px;background:#000;box-shadow:0 0 0 1px rgba(239,229,214,.1),0 50px 90px -40px rgba(217,160,74,.35)}
+.film video{width:100%;height:100%;object-fit:cover}
+.film h3{font-style:italic;font-size:clamp(1.2rem,2.4vw,1.9rem)}
+.film h3 [data-l="ar"]{font-style:normal}
+@media (max-width:480px){.films{grid-template-columns:1fr;max-width:340px;margin-inline:auto}}
+
+/* contact */
+.contact{background:var(--void);padding-block:clamp(90px,16vh,180px) 40px}
+.contact h2{font-size:clamp(2.8rem,9vw,8.5rem);letter-spacing:-.02em;max-width:12ch}
+.contact h2 i{color:var(--amber)}
+.services{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 clamp(24px,5vw,80px);margin:clamp(40px,8vh,80px) 0;list-style:none;padding:0;max-width:980px}
+.services li{display:flex;justify-content:space-between;gap:16px;padding:18px 0;border-bottom:1px solid rgba(239,229,214,.14);font-size:1.05rem}
+.services li .mono{color:var(--dust)}
+@media (max-width:640px){.services{grid-template-columns:1fr}}
+.handles{display:flex;flex-wrap:wrap;gap:16px}
+.handle{display:flex;align-items:center;gap:14px;padding:12px 22px 12px 12px;border:1px solid rgba(239,229,214,.2);border-radius:99px;text-decoration:none;transition:border-color .3s,background .3s}
+:root[dir="rtl"] .handle{padding:12px 12px 12px 22px}
+.handle:hover{border-color:var(--amber);background:rgba(217,160,74,.08)}
+.handle img{width:40px;height:40px;border-radius:50%}
+.handle span{display:grid;line-height:1.3}
+.handle small{color:var(--dust);font-size:.8rem}
+footer{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;color:var(--dust);padding-top:clamp(70px,12vh,140px)}
+
+/* short landscape screens (and link-preview captures): hero reads as a poster, dial waits until you scroll */
+@media (orientation:landscape) and (max-height:520px){
+  .hero{min-height:100svh;align-items:center}
+  .hero-copy{padding-block:13vh 6vh;gap:2.6vh}
+  .hero .eyebrow{font-size:max(9px,3.6vh)}
+  .hero h1{font-size:min(9vw,17vh)}
+  .hero .arname{font-size:min(4.6vw,9vh);line-height:1.2}
+  .hero .line{font-size:max(11px,4.6vh)}
+  .hero-media{width:52%}
+  .hint,.plate{display:none}
+  .dial-wrap{--d:min(46vh,220px);transition:opacity .4s}
+  :root:not(.scrolled) .dial-wrap{opacity:0;pointer-events:none}
+}
+@media (prefers-reduced-motion:reduce){
+  *{transition:none!important;animation:none!important;scroll-behavior:auto!important}
+}
+</style>
+</head><body>
+
+<nav class="nav" aria-label="Main">
+  <a class="mark" href="#top">F. Al Nabhan</a>
+  <button class="lang" id="lang" type="button" aria-label="Switch language / تغيير اللغة"><b class="en">EN</b> / <b class="ar">ع</b></button>
+</nav>
+
+<div class="dial-wrap" id="dialWrap">
+  <div class="readout" id="readout" aria-live="polite"></div>
+  <span class="notch" aria-hidden="true"></span>
+  <div class="dial" id="dial" role="radiogroup" aria-label="Sections / الأقسام"></div>
+</div>
+<div class="shutter" id="shutter" aria-hidden="true"></div>
+
+<header class="hero" id="top">
+  <div class="hero-media" id="torch" aria-hidden="true">
+    <img class="dim" src="assets/images/post_08_DP812FxiIGJ.jpg" alt="">
+    <img class="lit" src="assets/images/post_08_DP812FxiIGJ.jpg" alt="">
+  </div>
+  <div class="hero-copy wrap">
+    <p class="eyebrow"><span data-l="en">Wildlife photographer · Kuwait</span><span data-l="ar">مصوّر الحياة البرية · الكويت</span></p>
+    <h1>Fahad<br><i>Al</i> Nabhan</h1>
+    <p class="arname" lang="ar">فهد النبهان</p>
+    <p class="line"><span data-l="en">Out of the void, a whisper with claws.</span><span data-l="ar">من العتمة، همسٌ له مخالب.</span></p>
+    <p class="hint mono"><span data-l="en">Move to carry the light</span><span data-l="ar">حرّك المؤشر لتحمل الضوء</span></p>
+  </div>
+  <div class="plate mono" aria-hidden="true">
+    <em>Panthera pardus</em>
+    <span data-l="en">Captured by human hands, perfected by a robot</span><span data-l="ar">التقطتها يدٌ بشرية، وأتقنتها آلة</span>
+  </div>
+</header>
+
+<main>
+<section class="manifesto wrap" aria-label="Manifesto">
+  <p class="quote"><span data-l="en">Nature as it breathes. But sometimes, I let the wild go wild<span class="er">(er)</span>.</span><span data-l="ar">الطبيعة كما تتنفّس. وأحيانًا، أترك البرّية تزداد <span class="er">جموحًا</span>.</span></p>
+  <div class="by mono"><img src="assets/profile_fhdalnabhan.jpg" alt="Fahad Al Nabhan"><span>@fhdalnabhan · @fhdstudio</span></div>
+</section>
+
+<!-- I. WILD -->
+<section id="wild" class="wrap" style="background:var(--void)">
+  <div class="chapter-head">
+    <span class="num">I</span>
+    <div>
+      <p class="eyebrow">@fhdalnabhan</p>
+      <h2><span data-l="en">The Untouched Wild</span><span data-l="ar">البرّية كما هي</span></h2>
+      <p><span data-l="en">Savannah light, held still. Lions, cheetahs and leopards met at eye level, in the hour when gold turns to dust.</span><span data-l="ar">ضوء السافانا كما هو. أسود وفهود ونمور على مستوى العين، في الساعة التي يتحوّل فيها الذهب إلى غبار.</span></p>
+    </div>
+  </div>
+  <div class="pair">
+    <figure class="tall">
+      <div class="frame"><img src="assets/images/post_06_DQXMT61iKyS.jpg" alt="A lioness in golden light with a butterfly resting on her head"></div>
+      <figcaption class="mono"><span class="latin">Panthera leo</span><span data-l="en">Grace disguised as danger</span><span data-l="ar">رشاقةٌ في هيئة خطر</span></figcaption>
+    </figure>
+    <div class="wide">
+      <blockquote><span data-l="en">Where instinct writes the rules, not time.</span><span data-l="ar">حيث تكتب الغريزة القواعد، لا الزمن.</span></blockquote>
+      <figure>
+        <div class="frame"><img src="assets/images/post_07_DQSHUXFDiZi.jpg" alt="A cheetah standing on open grassland at eye level"></div>
+        <figcaption class="mono"><span class="latin">Acinonyx jubatus</span><span data-l="en">Eye level, open plain</span><span data-l="ar">على مستوى العين، سهلٌ مفتوح</span></figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<section class="nocturne wrap" aria-label="When the light sleeps">
+  <div class="nocturne-head">
+    <h3><span data-l="en">When the light sleeps, the wild awakens.</span><span data-l="ar">حين ينام الضوء، تستيقظ البرّية.</span></h3>
+    <p class="mono"><span data-l="en">Four night portraits · low-key series</span><span data-l="ar">أربع صور ليلية · سلسلة الإضاءة الخافتة</span></p>
+  </div>
+  <div class="quad">
+    <figure><div class="frame"><img src="assets/images/post_09_DP6T4OiCG_9_slide_01.jpg" alt="Leopard in darkness with a teal rim light"></div><figcaption class="mono"><span class="latin">Panthera pardus</span></figcaption></figure>
+    <figure><div class="frame"><img src="assets/images/post_09_DP6T4OiCG_9_slide_02.jpg" alt="Cape buffalo with horns lit in amber against black"></div><figcaption class="mono"><span class="latin">Syncerus caffer</span></figcaption></figure>
+    <figure><div class="frame"><img src="assets/images/post_09_DP6T4OiCG_9_slide_03.jpg" alt="Lioness portrait in warm and cool light against black"></div><figcaption class="mono"><span class="latin">Panthera leo</span></figcaption></figure>
+    <figure><div class="frame"><img src="assets/images/post_09_DP6T4OiCG_9_slide_04.jpg" alt="Saddle-billed stork with a red and yellow bill against black"></div><figcaption class="mono"><span class="latin">Ephippiorhynchus senegalensis</span></figcaption></figure>
+  </div>
+</section>
+
+<section class="scrub" id="scrub" aria-label="Stories in patterns">
+  <div class="scrub-stage wrap">
+    <div class="txt">
+      <p class="eyebrow"><span data-l="en">Three frames · one turn of the head</span><span data-l="ar">ثلاث لقطات · التفاتة واحدة</span></p>
+      <h3><span data-l="en">Her patterns tell stories; her eyes choose silence.</span><span data-l="ar">نقوشها تروي الحكايات، وعيناها تختاران الصمت.</span></h3>
+      <p><span data-l="en">Scroll slowly. The sequence plays the way it was shot.</span><span data-l="ar">مرّر ببطء، فتتحرّك اللقطات كما صُوّرت.</span></p>
+      <div class="ticks" id="ticks" aria-hidden="true"><i class="on"></i><i></i><i></i></div>
+    </div>
+    <div class="scrub-frames" id="frames">
+      <img class="on" src="assets/images/post_10_DPlq2zBCGJt_slide_01.jpg" alt="Leopard in profile, frame one">
+      <img src="assets/images/post_10_DPlq2zBCGJt_slide_02.jpg" alt="Leopard in profile, frame two">
+      <img src="assets/images/post_10_DPlq2zBCGJt_slide_03.jpg" alt="Leopard in profile, frame three">
+    </div>
+  </div>
+</section>
+
+<!-- II. STUDIO -->
+<section id="studio" class="studio">
+  <div class="wrap">
+    <div class="chapter-head">
+      <span class="num">II</span>
+      <div>
+        <p class="eyebrow" style="color:var(--ink)">@fhdstudio</p>
+        <h2><span data-l="en">Where Reality Bends</span><span data-l="ar">حيث ينحني الواقع</span></h2>
+        <p><span data-l="en">The studio is where the untouched wild becomes something else: jewellery, pastel skies, red rooms that defy gravity.</span><span data-l="ar">في الاستوديو تتحوّل البرّية إلى شيء آخر: مجوهرات، وسماوات بألوان الباستيل، وغرف حمراء تتحدّى الجاذبية.</span></p>
+      </div>
+    </div>
+    <p class="credo"><span data-l="en">Nature shows me her face. <em>I show her what she could be.</em></span><span data-l="ar">تُريني الطبيعة وجهها، فأُريها ما يمكن أن تكون.</span></p>
+    <div class="cosmic" id="cosmic">
+      <h3><span data-l="en">Calm, but cosmic.</span><span data-l="ar">هادئة، لكنها كونيّة.</span></h3>
+      <figure data-stage="#e3cfda"><div class="frame"><img src="assets/images/post_04_DRAK9KkCLSn_slide_01.jpg" alt="Leopard wearing a turquoise jewelled collar on a blush background"></div><figcaption class="mono"><span class="latin">Turquoise</span><span>01 / 04</span></figcaption></figure>
+      <figure data-stage="#a9dfe9"><div class="frame"><img src="assets/images/post_04_DRAK9KkCLSn_slide_02.jpg" alt="Leopard in profile with a beaded necklace on an aqua background"></div><figcaption class="mono"><span class="latin">Lapis</span><span>02 / 04</span></figcaption></figure>
+      <figure data-stage="#dcb8d2"><div class="frame"><img src="assets/images/post_04_DRAK9KkCLSn_slide_03.jpg" alt="Leopard with a violet and gold collar on a pink background"></div><figcaption class="mono"><span class="latin">Amethyst</span><span>03 / 04</span></figcaption></figure>
+      <figure data-stage="#c3dbe5"><div class="frame"><img src="assets/images/post_04_DRAK9KkCLSn_slide_04.jpg" alt="Leopard facing forward wearing a gold chain on a pale blue background"></div><figcaption class="mono"><span class="latin">Gold</span><span>04 / 04</span></figcaption></figure>
+    </div>
+  </div>
+  <div class="gravity">
+    <div class="gravity-inner wrap">
+      <figure><div class="frame"><img src="assets/images/post_05_DQjivcjiFB1_slide_01.jpg" alt="Leopard seated on red steps in a red arched room"></div></figure>
+      <figure><div class="frame"><img src="assets/images/post_05_DQjivcjiFB1_slide_02.jpg" alt="Leopard walking down red steps in a red arched room"></div></figure>
+      <div class="side">
+        <p class="mono" style="color:var(--amber)"><span data-l="en">Diptych · red room</span><span data-l="ar">ثنائية · الغرفة الحمراء</span></p>
+        <h3><span data-l="en">Where she walks, gravity listens.</span><span data-l="ar">حيث تمشي، تُصغي الجاذبية.</span></h3>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- III. HERITAGE -->
+<section id="heritage" class="heritage wrap">
+  <div class="chapter-head">
+    <span class="num">III</span>
+    <div>
+      <p class="eyebrow"><span data-l="en">Contemporary visual interpretation</span><span data-l="ar">اجتهاد بصري معاصر</span></p>
+      <h2><span data-l="en">Faces of Kuwait</span><span data-l="ar">وجوه من تاريخ الكويت</span></h2>
+      <p><span data-l="en">Historical photographs brought as close to reality as possible, with the dignity their subjects carried.</span><span data-l="ar">صور تاريخية تقترب من الواقع قدر الإمكان، بالوقار الذي يليق بأصحابها.</span></p>
+    </div>
+  </div>
+  <div class="portraits">
+    <figure>
+      <div class="frame"><img src="assets/images/post_02_DTS4n2HjEvz.jpg" alt="Portrait interpretation of Sheikh Mubarak Al-Kabeer in a red shemagh"></div>
+      <figcaption style="display:grid;gap:10px;padding:0">
+        <h3><span data-l="en">Sheikh Mubarak Al-Kabeer</span><span data-l="ar">الشيخ مبارك الكبير</span></h3>
+        <p class="cap" dir="rtl" lang="ar">قراءة حديثة لصورة تاريخية تُبرز الحضور والوقار الذي يليق بقائد مؤسس دولة الكويت الحديثة.</p>
+        <p class="cap" data-l="en">The presence and dignity befitting the founder of the modern State of Kuwait.</p>
+      </figcaption>
+    </figure>
+    <figure>
+      <div class="frame"><img src="assets/images/post_01_DTXQwAWjNLp.jpg" alt="Portrait interpretation of Sheikh Abdullah Al-Salem Al-Sabah reading a newspaper"></div>
+      <figcaption style="display:grid;gap:10px;padding:0">
+        <h3><span data-l="en">Sheikh Abdullah Al-Salem Al-Sabah</span><span data-l="ar">الشيخ عبدالله السالم الصباح</span></h3>
+        <p class="cap" dir="rtl" lang="ar">الحاكم الحادي عشر لدولة الكويت، الذي أرسى دعائم المؤسسات القانونية والدستورية.</p>
+        <p class="cap" data-l="en">The eleventh ruler of Kuwait, who established the country’s legal and constitutional institutions.</p>
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- IV. CONCEPTS -->
+<section id="concepts" class="gp wrap">
+  <div class="chapter-head">
+    <span class="num">IV</span>
+    <div>
+      <p class="eyebrow">#KuwaitGP</p>
+      <h2><span data-l="en">Kuwait Grand Prix</span><span data-l="ar">جائزة الكويت الكبرى</span></h2>
+      <p><span data-l="en">A concept for a street circuit that does not exist yet: the RB18 at night, between the towers, the souq and the sea.</span><span data-l="ar">تصوّر لحلبة شوارع لم تُبنَ بعد: سيارة RB18 ليلًا، بين الأبراج والسوق والبحر.</span></p>
+    </div>
+  </div>
+  <div class="reel" id="reel" aria-roledescription="carousel" aria-label="Kuwait Grand Prix concept frames">
+    <img class="on" src="assets/images/post_03_DRo-l2RCF9h_slide_01.jpg" alt="Formula One car racing past the Kuwait Towers at night">
+    <img src="assets/images/post_03_DRo-l2RCF9h_slide_02.jpg" alt="Formula One car on a lit street circuit beside a grandstand">
+    <img src="assets/images/post_03_DRo-l2RCF9h_slide_03.jpg" alt="Formula One car passing a clock tower and heritage building">
+    <img src="assets/images/post_03_DRo-l2RCF9h_slide_04.jpg" alt="Formula One car beside a lattice-roofed building at night">
+  </div>
+  <div class="reel-bar">
+    <span class="mono" id="reelCount">01 / 04</span>
+    <div class="ctrl">
+      <button type="button" id="prev" aria-label="Previous frame">←</button>
+      <button type="button" id="next" aria-label="Next frame">→</button>
+    </div>
+  </div>
+  <blockquote><span data-l="en">Just a dream today… hopefully reality tomorrow.</span><span data-l="ar">مجرّد حلمٍ اليوم… وواقعٌ غدًا بإذن الله.</span></blockquote>
+</section>
+
+<!-- V. MOTION -->
+<section id="motion" class="motion wrap">
+  <div class="chapter-head">
+    <span class="num">V</span>
+    <div>
+      <p class="eyebrow"><span data-l="en">Films</span><span data-l="ar">أفلام</span></p>
+      <h2><span data-l="en">The Wild, in Motion</span><span data-l="ar">البرّية تتحرّك</span></h2>
+    </div>
+  </div>
+  <div class="films">
+    <figure class="film">
+      <div class="screen"><video src="assets/videos/post_12_DOOFgE6CKOZ.mp4" poster="assets/images/post_12_DOOFgE6CKOZ.jpg" muted loop playsinline autoplay preload="metadata" aria-label="The wild chooses Porsche"></video></div>
+      <h3><span data-l="en">The wild chooses Porsche</span><span data-l="ar">البرّية تختار بورشه</span></h3>
+      <p class="mono" style="color:var(--dust)"><span data-l="en">Automotive campaign concept</span><span data-l="ar">تصوّر لحملة سيارات</span></p>
+    </figure>
+    <figure class="film">
+      <div class="screen"><video src="assets/videos/post_11_DORJLimCNXu.mp4" poster="assets/images/post_11_DORJLimCNXu.jpg" muted loop playsinline autoplay preload="metadata" aria-label="Unreal wild reel"></video></div>
+      <h3><span data-l="en">Tell me this isn’t the most unreal thing you’ve seen today</span><span data-l="ar">قل لي إن هذا ليس أغرب ما رأيته اليوم</span></h3>
+      <p class="mono" style="color:var(--dust)"><span data-l="en">Motion study</span><span data-l="ar">دراسة حركة</span></p>
+    </figure>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact" class="contact wrap">
+  <p class="eyebrow"><span data-l="en">Commissions</span><span data-l="ar">الطلبات والتعاون</span></p>
+  <h2><span data-l="en">Let’s make something wild<i>(er)</i>.</span><span data-l="ar">لنصنع شيئًا <i>أكثر جموحًا</i>.</span></h2>
+  <ul class="services">
+    <li><span data-l="en">Fine-art wildlife prints</span><span data-l="ar">مطبوعات فنية للحياة البرية</span><span class="mono">Wild</span></li>
+    <li><span data-l="en">Brand and automotive campaigns</span><span data-l="ar">حملات العلامات التجارية والسيارات</span><span class="mono">Studio</span></li>
+    <li><span data-l="en">Historical portrait interpretation</span><span data-l="ar">إحياء الصور التاريخية</span><span class="mono">Heritage</span></li>
+    <li><span data-l="en">Visual concepts and short films</span><span data-l="ar">مفاهيم بصرية وأفلام قصيرة</span><span class="mono">Motion</span></li>
+  </ul>
+  <div class="handles">
+    <a class="handle" href="https://www.instagram.com/fhdalnabhan/" target="_blank" rel="noopener"><img src="assets/profile_fhdalnabhan.jpg" alt=""><span>@fhdalnabhan<small><span data-l="en">The untouched wild</span><span data-l="ar">البرّية كما هي</span></small></span></a>
+    <a class="handle" href="https://www.instagram.com/fhdstudio/" target="_blank" rel="noopener"><img src="assets/profile_fhdstudio.jpg" alt=""><span>@fhdstudio<small><span data-l="en">Where reality bends</span><span data-l="ar">حيث ينحني الواقع</span></small></span></a>
+  </div>
+  <footer class="mono">
+    <span>© Fahad Al Nabhan · فهد النبهان · Kuwait</span>
+    <span><span data-l="en">Website concept · preview</span><span data-l="ar">تصوّر للموقع · نسخة معاينة</span></span>
+  </footer>
+</section>
+</main>
+
+<script>
+(function(){
+  var root=document.documentElement;
+  var reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* language */
+  function setLang(l){
+    root.lang=l; root.dir='ltr'; /* only the words change; layout stays as in English */
+    try{localStorage.setItem('fn-lang',l)}catch(e){}
+  }
+  var start=(location.hash==='#ar')?'ar':(location.hash==='#en'?'en':null);
+  if(!start){try{start=localStorage.getItem('fn-lang')}catch(e){}}
+  setLang(start==='ar'?'ar':'en');
+  document.getElementById('lang').addEventListener('click',function(){setLang(root.lang==='ar'?'en':'ar')});
+
+
+  /* mode dial */
+  var modes=[
+    {id:'top',k:'F',en:'Fahad',ar:'فهد'},
+    {id:'wild',k:'W',en:'Wild',ar:'البرّية'},
+    {id:'studio',k:'S',en:'Studio',ar:'الاستوديو'},
+    {id:'heritage',k:'H',en:'Heritage',ar:'التراث'},
+    {id:'concepts',k:'GP',en:'Grand Prix',ar:'الجائزة الكبرى'},
+    {id:'motion',k:'M',en:'Motion',ar:'الحركة'},
+    {id:'contact',k:'C',en:'Contact',ar:'تواصل'}
+  ];
+  var STEP=32,dial=document.getElementById('dial'),wrapEl=document.getElementById('dialWrap'),readout=document.getElementById('readout'),shutter=document.getElementById('shutter');
+  var cur=0,jumping=false,idleT,btns=modes.map(function(m,i){
+    var b=document.createElement('button');b.type='button';b.className='mode';b.textContent=m.k;
+    b.setAttribute('role','radio');b.setAttribute('aria-label',m.en+' / '+m.ar);
+    b.addEventListener('click',function(){if(!moved)go(i,true)});
+    dial.appendChild(b);return b;
+  });
+  function vec(){
+    var R=dial.offsetWidth/2*0.71;
+    if(window.matchMedia('(max-width:820px) and (orientation:portrait)').matches)return[0,-R];
+    return [-R,0];
+  }
+  function sign(){return 1}
+  function layout(){
+    var v=vec(),s=sign();
+    btns.forEach(function(b,i){b.style.transform='rotate('+(s*i*STEP)+'deg) translate('+v[0]+'px,'+v[1]+'px)'});
+    spin(cur);
+  }
+  function spin(i,extra){dial.style.transform='rotate('+(sign()*(-i*STEP)+(extra||0))+'deg)'}
+  function show(i){
+    cur=i;spin(i);
+    btns.forEach(function(b,k){b.classList.toggle('on',k===i);b.setAttribute('aria-checked',k===i);b.tabIndex=k===i?0:-1});
+    var m=modes[i];
+    readout.innerHTML='<span>'+String(i).padStart(2,'0')+' · '+m.k+'</span><b><span data-l="en">'+m.en+'</span><span data-l="ar">'+m.ar+'</span></b>';
+    readout.classList.remove('idle');clearTimeout(idleT);idleT=setTimeout(function(){readout.classList.add('idle')},1800);
+  }
+  function jump(id){
+    var el=document.getElementById(id);
+    window.scrollTo({top:id==='top'?0:el.getBoundingClientRect().top+window.scrollY,behavior:'instant'});
+  }
+  function hex(r,rot,w,h){
+    var cx=w/2,cy=h/2,pts=[];
+    for(var k=0;k<6;k++){var a=(rot+k*60)*Math.PI/180;pts.push((cx+r*Math.cos(a)).toFixed(1)+'px '+(cy+r*Math.sin(a)).toFixed(1)+'px')}
+    return 'polygon(evenodd,0 0,'+w+'px 0,'+w+'px '+h+'px,0 '+h+'px,0 0,'+pts.join(',')+','+pts[0]+')';
+  }
+  function iris(from,to,ms,done){
+    var w=innerWidth,h=innerHeight,big=Math.hypot(w,h)*0.62,t0=performance.now();
+    (function f(now){
+      var t=Math.min(1,(now-t0)/ms),e=t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2,v=from+(to-from)*e;
+      shutter.style.clipPath=hex(big*v,30+(1-v)*70,w,h);
+      if(t<1)requestAnimationFrame(f);else done&&done();
+    })(t0);
+  }
+  function go(i,user){
+    i=Math.max(0,Math.min(modes.length-1,i));show(i);
+    if(!user)return;
+    if(reduce){jump(modes[i].id);return}
+    jumping=true;shutter.classList.add('go');
+    iris(1,0,280,function(){jump(modes[i].id);setTimeout(function(){iris(0,1,380,function(){shutter.classList.remove('go');jumping=false})},90)});
+  }
+  /* drag to turn */
+  var drag=null,moved=false;
+  function ang(e){var r=dial.getBoundingClientRect();return Math.atan2(e.clientY-(r.top+r.height/2),e.clientX-(r.left+r.width/2))*180/Math.PI}
+  dial.addEventListener('pointerdown',function(e){drag={a:ang(e)};moved=false});
+  window.addEventListener('pointermove',function(e){
+    if(!drag)return;var d=ang(e)-drag.a;if(d>180)d-=360;if(d<-180)d+=360;
+    if(Math.abs(d)>4&&!moved){moved=true;dial.classList.add('dragging')}
+    if(moved){drag.d=d;spin(cur,d)}
+  });
+  window.addEventListener('pointerup',function(){
+    if(!drag)return;
+    if(moved){dial.classList.remove('dragging');var n=Math.round(cur-sign()*(drag.d||0)/STEP);go(n,true);setTimeout(function(){moved=false},0)}
+    drag=null;
+  });
+  /* scroll wheel and keys turn it one click at a time */
+  var wheelLock=0;
+  wrapEl.addEventListener('wheel',function(e){e.preventDefault();var now=Date.now();if(now<wheelLock)return;wheelLock=now+450;go(cur+(e.deltaY>0?1:-1),true)},{passive:false});
+  dial.addEventListener('keydown',function(e){
+    if(e.key==='ArrowDown'||e.key==='ArrowRight'){e.preventDefault();go(cur+1,true);btns[cur].focus()}
+    if(e.key==='ArrowUp'||e.key==='ArrowLeft'){e.preventDefault();go(cur-1,true);btns[cur].focus()}
+  });
+  /* follow the page when it is scrolled normally */
+  function spy(){
+    if(jumping||drag)return;var line=innerHeight*0.45,n=0;
+    modes.forEach(function(m,i){var el=document.getElementById(m.id);if(i===0||el.getBoundingClientRect().top<=line)n=i});
+    if(n!==cur)show(n);
+  }
+  window.addEventListener('scroll',function(){root.classList.toggle('scrolled',scrollY>40);spy()},{passive:true});
+  window.addEventListener('resize',layout);
+  new MutationObserver(layout).observe(root,{attributes:true,attributeFilter:['dir']});
+  layout();show(0);spy();
+
+  /* hero torch */
+  var torch=document.getElementById('torch');
+  var lit=torch.querySelector('.lit');
+  var tx=0.5,ty=0.32,cx=0.5,cy=0.32,last=0,t0=performance.now();
+  torch.parentElement.addEventListener('pointermove',function(e){
+    var r=torch.getBoundingClientRect();
+    tx=(e.clientX-r.left)/r.width; ty=(e.clientY-r.top)/r.height; last=performance.now();
+  });
+  function radius(){var r=torch.getBoundingClientRect();return Math.max(150,Math.min(r.width,r.height)*0.3)}
+  function paint(){
+    lit.style.setProperty('--x',(cx*100).toFixed(2)+'%');
+    lit.style.setProperty('--y',(cy*100).toFixed(2)+'%');
+    lit.style.setProperty('--r',radius()+'px');
+  }
+  if(reduce){paint()}else{
+    (function loop(now){
+      if(now-last>2200){ /* drift across the face when idle */
+        var t=(now-t0)/1000;
+        tx=0.5+Math.sin(t*0.45)*0.18; ty=0.34+Math.sin(t*0.31)*0.12;
+      }
+      cx+=(tx-cx)*0.08; cy+=(ty-cy)*0.08; paint();
+      requestAnimationFrame(loop);
+    })(performance.now());
+  }
+
+  /* scroll-scrubbed frames */
+  var scrub=document.getElementById('scrub'),frames=[].slice.call(document.querySelectorAll('#frames img')),ticks=[].slice.call(document.querySelectorAll('#ticks i'));
+  function onScroll(){
+    var r=scrub.getBoundingClientRect(),span=r.height-window.innerHeight;
+    var p=Math.min(1,Math.max(0,-r.top/span));
+    var i=Math.min(frames.length-1,Math.floor(p*frames.length));
+    frames.forEach(function(f,k){f.classList.toggle('on',k===i)});
+    ticks.forEach(function(t,k){t.classList.toggle('on',k<=i)});
+  }
+  window.addEventListener('scroll',onScroll,{passive:true}); onScroll();
+
+  /* studio ground follows the frame in view */
+  var studio=document.getElementById('studio');
+  if('IntersectionObserver' in window){
+    var io=new IntersectionObserver(function(es){
+      es.forEach(function(e){if(e.isIntersecting)studio.style.setProperty('--stage',e.target.getAttribute('data-stage'))});
+    },{rootMargin:'-45% 0px -45% 0px'});
+    document.querySelectorAll('#cosmic figure').forEach(function(f){io.observe(f)});
+  }
+
+  /* grand prix reel */
+  var shots=[].slice.call(document.querySelectorAll('#reel img')),rc=0,count=document.getElementById('reelCount'),timer;
+  function reelShow(n){
+    shots[rc].classList.remove('on'); rc=(n+shots.length)%shots.length; shots[rc].classList.add('on');
+    count.textContent=('0'+(rc+1))+' / 0'+shots.length;
+  }
+  function auto(){clearInterval(timer); if(!reduce)timer=setInterval(function(){reelShow(rc+1)},4800)}
+  document.getElementById('next').addEventListener('click',function(){reelShow(rc+1);auto()});
+  document.getElementById('prev').addEventListener('click',function(){reelShow(rc-1);auto()});
+  auto();
+
+  /* play films only while visible */
+  if('IntersectionObserver' in window){
+    var vo=new IntersectionObserver(function(es){es.forEach(function(e){
+      if(e.isIntersecting&&!reduce){var p=e.target.play();if(p&&p.catch)p.catch(function(){})}else e.target.pause();
+    })},{threshold:.25});
+    document.querySelectorAll('video').forEach(function(v){vo.observe(v)});
+  }
+})();
+</script>
+</body></html>
