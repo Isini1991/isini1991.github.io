@@ -687,6 +687,7 @@ html.no-gl .reel-index .nm { font-size: 1.6rem; }
     var t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; t.anisotropy = 4; return t;
   }
   function buildTrophy() {
+    var i;
     renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.15;
     var env = sunsetEnv();
     var gold = new THREE.MeshStandardMaterial({ color: 0xffcf72, metalness: 1, roughness: 0.22, envMap: env, envMapIntensity: 1.9, flatShading: true });
@@ -694,53 +695,68 @@ html.no-gl .reel-index .nm { font-size: 1.6rem; }
     var g = new THREE.Group();
 
     // base: four-sided frustum with a brushed gold plaque on the front
-    var baseH = 0.9, rt = 0.42, rb = 0.6;
+    var baseH = 0.9, rt = 0.148 * (0.9 / 0.245) * Math.SQRT2, rb = 0.207 * (0.9 / 0.245) * Math.SQRT2;
     var base = new THREE.Mesh(new THREE.CylinderGeometry(rt, rb, baseH, 4, 1), marble);
     base.rotation.y = Math.PI / 4; base.position.y = baseH / 2; g.add(base);
     var ht = rt / Math.SQRT2, hb = rb / Math.SQRT2, tilt = Math.atan((hb - ht) / baseH);
-    var plaque = new THREE.Mesh(new THREE.PlaneGeometry((ht + hb) * 0.82, baseH * 0.74), new THREE.MeshStandardMaterial({ map: plaqueTex(), metalness: 0.85, roughness: 0.35, envMap: env, envMapIntensity: 0.9 }));
+    var plaque = new THREE.Mesh(new THREE.PlaneGeometry(baseH * 0.7 * 512 / 560, baseH * 0.7), new THREE.MeshStandardMaterial({ map: plaqueTex(), metalness: 0.85, roughness: 0.35, envMap: env, envMapIntensity: 0.9 }));
     plaque.position.set(0, baseH / 2, (ht + hb) / 2 + 0.006); plaque.rotation.x = -tilt; g.add(plaque);
 
-    // body: a lathe with spiral drapery folds, flat shaded so it reads faceted like the sculpture
-    var prof = [[0.001, 0], [0.16, 0.0], [0.24, 0.06], [0.25, 0.4], [0.21, 0.9], [0.22, 1.25], [0.28, 1.6], [0.33, 1.88], [0.26, 2.04], [0.11, 2.13], [0.08, 2.24], [0.001, 2.26]];
-    var body = new THREE.LatheGeometry(prof.map(function (q) { return new THREE.Vector2(q[0], q[1]); }), 16);
-    var pa = body.attributes.position;
-    for (var i = 0; i < pa.count; i++) {
-      var vx = pa.getX(i), vy = pa.getY(i), vz = pa.getZ(i), a = Math.atan2(vz, vx), r = Math.hypot(vx, vz);
-      var fold = 1 + 0.11 * Math.sin(a * 3 + vy * 3.2) * sstep(0.1, 0.6, vy) * sstep(2.1, 1.7, vy) + 0.05 * Math.sin(a * 7 - vy * 6);
-      r *= fold; pa.setXYZ(i, Math.cos(a) * r, vy, Math.sin(a) * r * 0.72);
+    // figure: the scanned trophy (trophy.bin, ~99k triangles). The hand-built figure is the fallback if it cannot load.
+    var S = 0.9 / 0.245;
+    var smoothGold = new THREE.MeshStandardMaterial({ color: 0xffcf72, metalness: 1, roughness: 0.2, envMap: env, envMapIntensity: 1.9 });
+    fetch('trophy.bin').then(function (r) { if (!r.ok) throw new Error('trophy.bin ' + r.status); return r.arrayBuffer(); }).then(function (buf) {
+      var b = new Float32Array(buf, 0, 6), cnt = new Uint32Array(buf, 24, 2), nv = cnt[0], nt = cnt[1];
+      var qn = nv * 3 + (nv * 3) % 2, q = new Int16Array(buf, 32, nv * 3), off = 32 + qn * 2;
+      var ix = nv < 65536 ? new Uint16Array(buf, off, nt * 3) : new Uint32Array(buf, off, nt * 3);
+      var p = new Float32Array(nv * 3);
+      for (var i = 0; i < nv * 3; i++) { var k = i % 3; p[i] = b[k] + (q[i] + 32768) / 65535 * (b[3 + k] - b[k]); }
+      var geo = new THREE.BufferGeometry();
+      geo.setAttribute('position', new THREE.BufferAttribute(p, 3)); geo.setIndex(new THREE.BufferAttribute(ix, 1)); geo.computeVertexNormals();
+      var m = new THREE.Mesh(geo, smoothGold); m.scale.setScalar(S); m.position.y = baseH + 0.243 * S; g.add(m);
+    }).catch(function () { procFigure(); });
+    function procFigure() {
+      // body: a lathe with spiral drapery folds, flat shaded so it reads faceted like the sculpture
+      var prof = [[0.001, 0], [0.16, 0.0], [0.24, 0.06], [0.25, 0.4], [0.21, 0.9], [0.22, 1.25], [0.28, 1.6], [0.33, 1.88], [0.26, 2.04], [0.11, 2.13], [0.08, 2.24], [0.001, 2.26]];
+      var body = new THREE.LatheGeometry(prof.map(function (q) { return new THREE.Vector2(q[0], q[1]); }), 16);
+      var pa = body.attributes.position;
+      for (var i = 0; i < pa.count; i++) {
+        var vx = pa.getX(i), vy = pa.getY(i), vz = pa.getZ(i), a = Math.atan2(vz, vx), r = Math.hypot(vx, vz);
+        var fold = 1 + 0.11 * Math.sin(a * 3 + vy * 3.2) * sstep(0.1, 0.6, vy) * sstep(2.1, 1.7, vy) + 0.05 * Math.sin(a * 7 - vy * 6);
+        r *= fold; pa.setXYZ(i, Math.cos(a) * r, vy, Math.sin(a) * r * 0.72);
+      }
+      body.computeVertexNormals();
+      var torso = new THREE.Mesh(body, gold); torso.position.y = baseH; g.add(torso);
+
+      // cloak falling from the left shoulder
+      var cloak = new THREE.BoxGeometry(0.2, 1.7, 0.12, 2, 10, 1), ca = cloak.attributes.position;
+      for (i = 0; i < ca.count; i++) {
+        var y = ca.getY(i), tw = (y + 0.85) * 0.9;
+        var cx = ca.getX(i) * (1 + (0.85 - y) * 0.45), cz = ca.getZ(i);
+        ca.setXYZ(i, cx * Math.cos(tw) - cz * Math.sin(tw) + Math.sin(y * 3) * 0.04, y, cx * Math.sin(tw) + cz * Math.cos(tw));
+      }
+      cloak.computeVertexNormals();
+      var cl = new THREE.Mesh(cloak, gold); cl.position.set(0.3, baseH + 1.18, 0.02); cl.rotation.z = -0.08; g.add(cl);
+
+      // head
+      var head = new THREE.Mesh(new THREE.IcosahedronGeometry(0.15, 1), gold);
+      head.scale.set(0.85, 1.18, 0.92); head.position.set(-0.02, baseH + 2.4, 0.01); head.rotation.z = 0.12; g.add(head);
+
+      // raised arm with torch
+      function limb(a, b, r0, r1) {
+        var d = new THREE.Vector3().subVectors(b, a), len = d.length();
+        var m = new THREE.Mesh(new THREE.CylinderGeometry(r1, r0, len, 7), gold);
+        m.position.copy(a).addScaledVector(d, 0.5);
+        m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), d.normalize());
+        g.add(m); return m;
+      }
+      var sh = new THREE.Vector3(-0.27, baseH + 2.0, 0), el = new THREE.Vector3(-0.42, baseH + 2.55, 0.02), wr = new THREE.Vector3(-0.47, baseH + 3.08, 0.03);
+      limb(sh, el, 0.085, 0.065); limb(el, wr, 0.065, 0.05);
+      var hand = new THREE.Mesh(new THREE.IcosahedronGeometry(0.07, 0), gold); hand.position.copy(wr); g.add(hand);
+      var torch = limb(new THREE.Vector3(-0.47, baseH + 2.98, 0.03), new THREE.Vector3(-0.5, baseH + 3.42, 0.03), 0.035, 0.07);
+      var flame = new THREE.Mesh(new THREE.ConeGeometry(0.07, 0.16, 6), gold); flame.position.set(-0.505, baseH + 3.5, 0.03); g.add(flame);
+
     }
-    body.computeVertexNormals();
-    var torso = new THREE.Mesh(body, gold); torso.position.y = baseH; g.add(torso);
-
-    // cloak falling from the left shoulder
-    var cloak = new THREE.BoxGeometry(0.2, 1.7, 0.12, 2, 10, 1), ca = cloak.attributes.position;
-    for (i = 0; i < ca.count; i++) {
-      var y = ca.getY(i), tw = (y + 0.85) * 0.9;
-      var cx = ca.getX(i) * (1 + (0.85 - y) * 0.45), cz = ca.getZ(i);
-      ca.setXYZ(i, cx * Math.cos(tw) - cz * Math.sin(tw) + Math.sin(y * 3) * 0.04, y, cx * Math.sin(tw) + cz * Math.cos(tw));
-    }
-    cloak.computeVertexNormals();
-    var cl = new THREE.Mesh(cloak, gold); cl.position.set(0.3, baseH + 1.18, 0.02); cl.rotation.z = -0.08; g.add(cl);
-
-    // head
-    var head = new THREE.Mesh(new THREE.IcosahedronGeometry(0.15, 1), gold);
-    head.scale.set(0.85, 1.18, 0.92); head.position.set(-0.02, baseH + 2.4, 0.01); head.rotation.z = 0.12; g.add(head);
-
-    // raised arm with torch
-    function limb(a, b, r0, r1) {
-      var d = new THREE.Vector3().subVectors(b, a), len = d.length();
-      var m = new THREE.Mesh(new THREE.CylinderGeometry(r1, r0, len, 7), gold);
-      m.position.copy(a).addScaledVector(d, 0.5);
-      m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), d.normalize());
-      g.add(m); return m;
-    }
-    var sh = new THREE.Vector3(-0.27, baseH + 2.0, 0), el = new THREE.Vector3(-0.42, baseH + 2.55, 0.02), wr = new THREE.Vector3(-0.47, baseH + 3.08, 0.03);
-    limb(sh, el, 0.085, 0.065); limb(el, wr, 0.065, 0.05);
-    var hand = new THREE.Mesh(new THREE.IcosahedronGeometry(0.07, 0), gold); hand.position.copy(wr); g.add(hand);
-    var torch = limb(new THREE.Vector3(-0.47, baseH + 2.98, 0.03), new THREE.Vector3(-0.5, baseH + 3.42, 0.03), 0.035, 0.07);
-    var flame = new THREE.Mesh(new THREE.ConeGeometry(0.07, 0.16, 6), gold); flame.position.set(-0.505, baseH + 3.5, 0.03); g.add(flame);
-
     // light: low desert sun from behind-left, cool sky fill from the front, warm bounce from the sand
     var key = new THREE.DirectionalLight(0xffc27a, 4.2); key.position.set(-3, 2.2, -2.5); g.add(key);
     var rim = new THREE.DirectionalLight(0xff8a3d, 2.2); rim.position.set(3, 1, -3); g.add(rim);
@@ -757,9 +773,9 @@ html.no-gl .reel-index .nm { font-size: 1.6rem; }
     orbit = new THREE.Points(og, new THREE.PointsMaterial({ color: 0xf0c27a, size: 0.028, transparent: true, opacity: 0.85, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }));
     g.add(orbit);
 
-    g.scale.setScalar(small ? 0.62 : 0.86);
-    g.scale.setScalar(small ? 0.56 : 0.74);
-    g.position.set(small ? 0 : 1.35, small ? -0.15 : -1.55, TROPHYZ);
+    g.scale.setScalar(small ? 0.62 : 0.82);
+    g.scale.setScalar(small ? 0.62 : 0.82);
+    g.position.set(small ? 0 : 1.35, small ? -0.15 : -1.25, TROPHYZ);
     g.userData.baseY = g.position.y;
     trophy = g; scene.add(g);
   }
