@@ -695,7 +695,7 @@ html.no-gl .reel-index .nm { font-size: 1.6rem; }
     var g = new THREE.Group();
 
     // base: four-sided frustum with a brushed gold plaque on the front
-    var baseH = 0.9, rt = 0.148 * (0.9 / 0.245) * Math.SQRT2, rb = 0.207 * (0.9 / 0.245) * Math.SQRT2;
+    var baseH = 0.9, rt = 0.0865 * (0.9 / 0.245) * Math.SQRT2, rb = 0.1285 * (0.9 / 0.245) * Math.SQRT2;
     var base = new THREE.Mesh(new THREE.CylinderGeometry(rt, rb, baseH, 4, 1), marble);
     base.rotation.y = Math.PI / 4; base.position.y = baseH / 2; g.add(base);
     var ht = rt / Math.SQRT2, hb = rb / Math.SQRT2, tilt = Math.atan((hb - ht) / baseH);
@@ -712,8 +712,10 @@ html.no-gl .reel-index .nm { font-size: 1.6rem; }
       var p = new Float32Array(nv * 3);
       for (var i = 0; i < nv * 3; i++) { var k = i % 3; p[i] = b[k] + (q[i] + 32768) / 65535 * (b[3 + k] - b[k]); }
       var geo = new THREE.BufferGeometry();
-      geo.setAttribute('position', new THREE.BufferAttribute(p, 3)); geo.setIndex(new THREE.BufferAttribute(ix, 1)); geo.computeVertexNormals();
-      var m = new THREE.Mesh(geo, smoothGold); m.scale.setScalar(S); m.position.y = baseH + 0.243 * S; g.add(m);
+      geo.setAttribute('position', new THREE.BufferAttribute(p, 3)); geo.setIndex(new THREE.BufferAttribute(ix, 1));
+      // the scan's base sits 39.25° off axis and off center: square it to our base so the figure faces the plaque
+      geo.rotateY(-0.685); geo.translate(-0.0202, 0, 0.0241); geo.computeVertexNormals();
+      var m = new THREE.Mesh(geo, smoothGold); m.scale.setScalar(S); m.position.y = baseH + 0.246 * S; g.add(m);
     }).catch(function () { procFigure(); });
     function procFigure() {
       // body: a lathe with spiral drapery folds, flat shaded so it reads faceted like the sculpture
