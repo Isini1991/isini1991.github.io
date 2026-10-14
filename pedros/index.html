@@ -86,6 +86,17 @@ nav a:hover::after { transform: scaleX(1); transform-origin: left; }
 @media not ((hover: hover) and (pointer: fine)) { .cursor { display: none; } }
 
 /* Chapters: words only, the stage does the rest */
+/* Lens: the pointer bubble is a viewfinder onto photos of Pedros at work. It moves by transform only, and the photo
+   inside drifts a little against the pointer, like looking through glass. */
+.lens { position: fixed; left: 0; top: 0; z-index: 1; pointer-events: none; width: 300px; height: 300px; margin: -150px 0 0 -150px; border-radius: 50%; overflow: hidden; opacity: 0; transition: opacity .6s var(--ease); will-change: transform, opacity;
+  -webkit-mask: radial-gradient(closest-side, #000 72%, rgba(0,0,0,.55) 88%, transparent 100%); mask: radial-gradient(closest-side, #000 72%, rgba(0,0,0,.55) 88%, transparent 100%); }
+.lens.on { opacity: 1; }
+.lens-in { position: absolute; inset: -12%; will-change: transform; }
+.lens-in i { position: absolute; inset: 0; background: center / cover no-repeat; opacity: 0; transition: opacity 1.1s var(--ease); }
+.lens-in i.on { opacity: 1; }
+.lens-in::after { content: ""; position: absolute; inset: 0; background: radial-gradient(closest-side, rgba(7,7,6,.05) 55%, rgba(7,7,6,.6)); }
+.lens-ring { position: absolute; inset: 9%; border-radius: 50%; border: 1px solid rgba(210,167,100,.5); box-shadow: 0 0 0 7px rgba(210,167,100,.07), inset 0 0 40px rgba(0,0,0,.55); }
+.lens-ring::before { content: ""; position: absolute; inset: -9px; border-radius: 50%; border: 1px dashed rgba(210,167,100,.28); }
 main { position: relative; z-index: 10; pointer-events: none; }
 main a, main button { pointer-events: auto; }
 .ch { position: relative; padding-left: var(--gl); padding-right: var(--gr); }
@@ -140,6 +151,9 @@ main a, main button { pointer-events: auto; }
 .about-wrap .lead { margin: 0 0 28px; font-weight: 300; font-stretch: 108%; font-size: clamp(1.6rem, 3.2vw, 2.8rem); line-height: 1.12; text-wrap: balance; }
 .about-wrap .lead em { font-style: normal; color: var(--gold); }
 .about-wrap p { margin: 0 0 16px; max-width: 58ch; color: #cfc6bb; }
+.portrait { margin: 0 0 28px; }
+.portrait img { display: block; width: 100%; height: auto; aspect-ratio: 3 / 4; object-fit: cover; border: 1px solid var(--rule); }
+.portrait figcaption { margin-top: 10px; }
 .facts { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--rule); }
 .facts li { display: grid; gap: 4px; padding-block: 14px; border-bottom: 1px solid var(--rule); }
 .facts li span:last-child { font-size: 1rem; }
@@ -198,6 +212,7 @@ html.no-gl .reel-index .nm { font-size: 1.6rem; }
   .award-cap .gw { font-size: 3rem; }
   .about-wrap { padding-block: 16vh 8vh; }
   .about-wrap .lead { font-size: 1.5rem; }
+  .portrait { max-width: 320px; }
   .about-wrap, .contact-wrap { text-shadow: 0 0 14px var(--black), 0 0 4px var(--black); }
   .contact-wrap { align-content: start; padding-top: 22vh; }
   .contact-wrap .big { font-size: 2rem; }
@@ -224,6 +239,7 @@ html.no-gl .reel-index .nm { font-size: 1.6rem; }
 </div>
 
 <div class="cursor" id="cursor" aria-hidden="true"><span id="cursor-label">Play</span></div>
+<div class="lens" id="lens" aria-hidden="true"><div class="lens-in" id="lens-in"><i data-src="img/lens-1.jpg"></i><i data-src="img/lens-3.jpg"></i><i data-src="img/lens-2.jpg"></i><i data-src="img/lens-4.jpg"></i></div><span class="lens-ring"></span></div>
 
 <header>
   <a class="brand" href="#intro" data-go="intro">Pedros Temizian</a>
@@ -293,12 +309,18 @@ html.no-gl .reel-index .nm { font-size: 1.6rem; }
         <p>I’m a director based in Dubai, making commercials, teasers and documentary films since 2005. Arabic, English and Armenian are all working languages on my sets, which usually means everyone in front of the camera gets to speak in their own.</p>
         <p>Whether it is thirty seconds or a full series, the scale of a brand matters less to me than the faces behind it. That is what the CEER series was about, and it is what I bring to every job. <span class="ph">Draft copy, needs approval</span></p>
       </div>
+      <div>
+      <figure class="portrait">
+        <img src="img/pedros-on-set.jpg" width="768" height="1024" loading="lazy" decoding="async" alt="Pedros Temizian behind a cinema camera on set">
+        <figcaption class="mono dim">On set</figcaption>
+      </figure>
       <ul class="facts mono dim">
         <li><span>Based in</span><span>Dubai, United Arab Emirates</span></li>
         <li><span>Directing since</span><span>2005</span></li>
         <li><span>Languages</span><span>English · <span class="ar">العربية</span> · <span class="hy">Հայերեն</span></span></li>
         <li><span>Recognition</span><span>Gold, MarCom Awards</span></li>
       </ul>
+      </div>
     </div>
   </section>
 
@@ -846,6 +868,39 @@ html.no-gl .reel-index .nm { font-size: 1.6rem; }
   addEventListener('pointerdown', function (e) { setPointer(e); if (e.pointerType !== 'mouse') pushOn = true; }, { passive: true });
   ['pointerup', 'pointercancel'].forEach(function (t) { addEventListener(t, function (e) { if (e.pointerType !== 'mouse') pushOn = false; }, { passive: true }); });
   document.addEventListener('mouseleave', function () { pushOn = false; });
+  // a touch that turns into a scroll cancels its pointer, so follow the finger with touch events as well
+  var touchOn = false;
+  function setTouch(e) { var t = e.touches[0]; if (!t) return; setPointer(t); touchOn = true; }
+  addEventListener('touchstart', setTouch, { passive: true });
+  addEventListener('touchmove', setTouch, { passive: true });
+  ['touchend', 'touchcancel'].forEach(function (t) { addEventListener(t, function (e) { if (!e.touches.length) touchOn = false; }, { passive: true }); });
+
+  // ---------- Lens: photos of Pedros at work, seen through the pointer bubble on the opening screen and in About
+  var lens = $('lens'), lensIn = $('lens-in'), lensPics = lensIn.children, lensPic = -1, lensTravel = 0, lensWas = false, lensD = 0, lpx = mx, lpy = my;
+  var aboutSec = $('about');
+  function lensNext() {
+    if (lensPic >= 0) lensPics[lensPic].classList.remove('on');
+    lensPic = (lensPic + 1) % lensPics.length;
+    var el = lensPics[lensPic];
+    if (!el.style.backgroundImage) el.style.backgroundImage = 'url(' + el.getAttribute('data-src') + ')';
+    el.classList.add('on');
+    var nx = lensPics[(lensPic + 1) % lensPics.length]; // warm the next one so the crossfade never shows an empty lens
+    if (!nx.style.backgroundImage) nx.style.backgroundImage = 'url(' + nx.getAttribute('data-src') + ')';
+  }
+  function lensFrame() {
+    var H = innerHeight, r = aboutSec.getBoundingClientRect();
+    var inAbout = fine && r.top < H * 0.55 && r.bottom > H * 0.45; // on phones the About text needs the whole screen
+    var inHero = booted && apUI.hidden && st.intro < 0.18;
+    var want = (inHero || inAbout) && (fine ? pushOn : touchOn) && player.hidden;
+    var d = Math.round(inAbout ? clamp(H * 0.36, 220, 340) : clamp(H * 0.3, 170, 280));
+    if (d !== lensD && (!lensWas || !want)) { lensD = d; lens.style.width = lens.style.height = d + 'px'; lens.style.margin = (-d / 2) + 'px 0 0 ' + (-d / 2) + 'px'; }
+    if (want && !lensWas) { lensNext(); lensTravel = 0; }
+    if (want !== lensWas) { lens.classList.toggle('on', want); lensWas = want; }
+    lensTravel += Math.hypot(cx - lpx, cy - lpy); lpx = cx; lpy = cy;
+    if (want && lensTravel > (fine ? 1400 : 700)) { lensTravel = 0; lensNext(); }
+    lens.style.transform = 'translate(' + cx + 'px,' + cy + 'px)';
+    lensIn.style.transform = 'translate(' + (-(cx / innerWidth - 0.5) * lensD * 0.2) + 'px,' + (-(cy / innerHeight - 0.5) * lensD * 0.2) + 'px)';
+  }
   if (fine) {
     document.body.classList.add('has-cursor');
     document.addEventListener('pointerover', function (e) {
@@ -872,6 +927,7 @@ html.no-gl .reel-index .nm { font-size: 1.6rem; }
     readScroll(); hud();
     cx = lerp(cx, mx, 0.3); cy = lerp(cy, my, 0.3);
     cur.style.transform = 'translate(' + cx + 'px,' + cy + 'px)';
+    lensFrame();
 
     // name in three scripts while resting on the intro
     if (fontsReady) {
@@ -889,7 +945,7 @@ html.no-gl .reel-index .nm { font-size: 1.6rem; }
       var storm = fontsReady ? sstep(0.25, 0.85, st.intro) : 1;
       u.uStorm.value = lerp(u.uStorm.value, storm, fontsReady ? 0.08 : 1);
       u.uHor.value = sstep(0.0, 1.0, st.outro);
-      u.uPush.value = lerp(u.uPush.value, pushOn ? 1 - u.uStorm.value : 0, 0.1);
+      u.uPush.value = lerp(u.uPush.value, (pushOn || touchOn) ? 1 - u.uStorm.value : 0, 0.1);
       var inReel = st.intro >= 1 ? 1 : st.intro;
       u.uAlpha.value = lerp(1, 0.4, sstep(0.6, 1, inReel)) * (1 - 0.6 * st.ceer * (1 - st.outro)) * (1 - 0.5 * st.award * (1 - st.outro)) + (small ? 0.35 : 0.6) * st.outro;
       var vh = 2 * Math.tan(THREE.MathUtils.degToRad(22.5)) * 10;
