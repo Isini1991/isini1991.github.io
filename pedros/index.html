@@ -8,7 +8,7 @@
 <meta name="description" content="Pedros Kevork Temizian, commercial and documentary director based in Dubai.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..800&family=JetBrains+Mono:wght@400&family=Noto+Sans+Armenian:wght@700&family=Noto+Kufi+Arabic:wght@700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..800&family=JetBrains+Mono:wght@400&family=Noto+Sans+Armenian:wght@700&family=Aref+Ruqaa:wght@700&display=swap">
 <style>
 /* Concept: "Dust & Light". One WebGL scene behind the page. Desert dust assembles into his name in Armenian, Arabic
    and English, blows into a storm, and the camera travels through his films hanging in the dark like a reel
@@ -144,7 +144,7 @@ main a, main button { pointer-events: auto; }
 .facts li { display: grid; gap: 4px; padding-block: 14px; border-bottom: 1px solid var(--rule); }
 .facts li span:last-child { font-size: 1rem; }
 .hy { font-family: "Noto Sans Armenian", sans-serif; }
-.ar { font-family: "Noto Kufi Arabic", sans-serif; }
+.ar { font-family: "Aref Ruqaa", serif; font-weight: 700; }
 
 .contact-wrap { min-height: 100vh; display: grid; align-content: end; gap: clamp(28px, 5vw, 56px); padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 28px); }
 .contact-wrap .big { margin: 0; font-weight: 300; font-stretch: 115%; font-size: clamp(2.2rem, 6.4vw, 6rem); line-height: .98; text-wrap: balance; }
@@ -359,7 +359,7 @@ html.no-gl .reel-index .nm { font-size: 1.6rem; }
   ];
   var SCRIPTS = [
     { text: 'Պետրոս', font: '"Noto Sans Armenian"', w: 700 },
-    { text: 'بيدروس', font: '"Noto Kufi Arabic"', w: 700 },
+    { text: 'بيدروس', font: '"Aref Ruqaa"', w: 700, dy: -57, max: 400 },
     { text: 'PEDROS', font: 'Archivo', w: 800 }
   ];
 
@@ -545,10 +545,10 @@ html.no-gl .reel-index .nm { font-size: 1.6rem; }
     var cw = 1200, ch = 420, cv = document.createElement('canvas'); cv.width = cw; cv.height = ch;
     var x = cv.getContext('2d'), size = 300;
     x.font = s.w + ' ' + size + 'px ' + s.font;
-    var mw = x.measureText(s.text).width; size = Math.min(size * 1080 / mw, 330);
+    var mw = x.measureText(s.text).width; size = Math.min(size * 1080 / mw, s.max || 330);
     x.font = s.w + ' ' + size + 'px ' + s.font;
     x.fillStyle = '#fff'; x.textAlign = 'center'; x.textBaseline = 'middle';
-    x.fillText(s.text, cw / 2, ch / 2 + (s.font.indexOf('Kufi') > -1 ? -20 : 0));
+    x.fillText(s.text, cw / 2, ch / 2 + (s.dy || 0));
     var d = x.getImageData(0, 0, cw, ch).data, pts = [];
     for (var y = 0; y < ch; y += 2) for (var xx = 0; xx < cw; xx += 2) if (d[(y * cw + xx) * 4 + 3] > 140) pts.push(xx, y);
     var out = new Float32Array(count * 3), sc = width / cw;
@@ -978,7 +978,7 @@ html.no-gl .reel-index .nm { font-size: 1.6rem; }
     if (booted) return; booted = true; target = 1;
     if (gl) { buildSets(); fontsReady = true; }
   }
-  var fontList = ['700 100px "Noto Sans Armenian"', '700 100px "Noto Kufi Arabic"', '800 100px Archivo', '400 16px "JetBrains Mono"'];
+  var fontList = ['700 100px "Noto Sans Armenian"', '700 100px "Aref Ruqaa"', '800 100px Archivo', '400 16px "JetBrains Mono"'];
   var minWait = new Promise(function (r) { setTimeout(r, reduce ? 100 : 1800); });
   var fontWait = document.fonts && document.fonts.load ? Promise.all(fontList.map(function (f, i) { return document.fonts.load(f, ['Պետրոս', 'بيدروس', 'PEDROS', '01'][i]); })) : Promise.resolve();
   Promise.all([minWait, Promise.race([fontWait, new Promise(function (r) { setTimeout(r, 3500); })])]).then(function () {
