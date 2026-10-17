@@ -1,0 +1,427 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Esi Vision, concept A</title>
+<link rel="icon" type="image/png" sizes="32x32" href="../../favicon-32.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,300..800&family=JetBrains+Mono:wght@400;500;700&family=Newsreader:ital,opsz,wght@0,6..72,300..600;1,6..72,300..600&display=swap">
+<style>
+:root {
+  --bg: #07080c; --ink: #ebe8e1; --muted: #868b9a; --line: #222533; --klein: #3a4cff; --phosphor: #8dff9e;
+  --f-display: "Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif;
+  --f-body: "Newsreader", Georgia, serif;
+  --f-mono: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+  --ease: cubic-bezier(.2, .7, .1, 1);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); }
+body {
+  font-family: var(--f-body); overflow: hidden; overscroll-behavior: none;
+  background:
+    radial-gradient(70% 55% at 50% 42%, #161a2e 0%, transparent 70%),
+    radial-gradient(40% 12% at 50% 88%, rgb(0 0 0 / .7), transparent 70%),
+    var(--bg);
+}
+a { color: inherit; }
+button { font: inherit; color: inherit; }
+.label { font-family: var(--f-mono); font-size: .72rem; letter-spacing: .14em; text-transform: uppercase; }
+
+/* ---------- top bar ---------- */
+.bar { position: fixed; inset: 0 0 auto; z-index: 10; display: flex; justify-content: space-between; align-items: center; padding: 18px clamp(16px, 3vw, 36px); }
+.wordmark { font-family: var(--f-display); font-weight: 800; font-size: 1.4rem; text-decoration: none; letter-spacing: -.02em; }
+.wordmark span { color: var(--klein); }
+.bar nav { display: flex; gap: clamp(12px, 2.4vw, 28px); align-items: center; }
+.bar nav a, .bar nav button { background: none; border: 0; padding: 0; cursor: pointer; text-decoration: none; color: var(--ink); }
+.bar nav a:hover, .bar nav button:hover { color: var(--klein); }
+.onair { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); }
+.onair::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: #ff3b3b; box-shadow: 0 0 10px #ff3b3b; animation: blink 1.6s steps(2) infinite; }
+@keyframes blink { 50% { opacity: .2; } }
+@media (max-width: 640px) { .onair { display: none; } }
+
+/* ---------- stage ---------- */
+.stage { position: fixed; inset: 0; display: grid; place-items: center; padding: 76px 16px 150px; }
+.tv { position: relative; width: min(90vw, 104svh, 1100px); }
+.cabinet {
+  position: relative; display: grid; grid-template-columns: 1fr clamp(70px, 9%, 120px); gap: clamp(12px, 2%, 26px);
+  padding: clamp(14px, 2.4%, 30px); border-radius: clamp(18px, 3vw, 36px);
+  background: linear-gradient(160deg, #2a2620 0%, #1a1714 45%, #0f0d0b 100%);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / .08), inset 0 -10px 30px rgb(0 0 0 / .6), 0 40px 80px rgb(0 0 0 / .65), 0 0 0 1px #000;
+}
+.cabinet::before { /* wood grain */
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: .18; mix-blend-mode: overlay;
+  background: repeating-linear-gradient(92deg, transparent 0 7px, rgb(255 255 255 / .12) 7px 8px, transparent 8px 19px);
+}
+.bezel { position: relative; padding: clamp(8px, 1.6%, 18px); border-radius: clamp(14px, 2.4vw, 30px); background: #050505; box-shadow: inset 0 0 0 2px #111, inset 0 4px 18px #000; }
+.screen {
+  position: relative; aspect-ratio: 4 / 3; overflow: hidden; background: #000;
+  border-radius: 7% / 9%; isolation: isolate;
+  box-shadow: inset 0 0 60px rgb(0 0 0 / .9);
+}
+.screen.is-on { animation: flicker 6s infinite; }
+@keyframes flicker { 0%, 100% { filter: brightness(1); } 48% { filter: brightness(1); } 49% { filter: brightness(1.08); } 50% { filter: brightness(.96); } }
+.feed { position: absolute; inset: 0; transform-origin: 50% 50%; }
+.feed iframe { position: absolute; left: 0; top: 0; border: 0; transform-origin: 0 0; pointer-events: none; background: #000; opacity: 0; transition: opacity .3s; }
+.feed iframe.ready { opacity: 1; }
+.screen.is-interactive .feed iframe { pointer-events: auto; }
+.feed img { position: absolute; inset: -4%; width: 108%; height: 108%; object-fit: cover; object-position: center top; animation: pan 18s ease-in-out infinite alternate; }
+@keyframes pan { to { transform: translate(-3%, -2%) scale(1.04); } }
+.card { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; padding: 6%; }
+canvas.bars { position: absolute; inset: 0; width: 100%; height: 100%; }
+.testcard { position: relative; z-index: 1; display: grid; gap: .4em; place-items: center; }
+.testcard .disc {
+  width: clamp(120px, 34%, 340px); aspect-ratio: 1; border-radius: 50%; display: grid; place-items: center;
+  background: #0b0c12; border: 3px solid var(--ink); box-shadow: 0 0 0 6px #0b0c12, 0 0 0 9px var(--ink);
+}
+.testcard .disc b { font-family: var(--f-display); font-weight: 800; font-stretch: 75%; font-size: clamp(2.6rem, 9vw, 7.5rem); letter-spacing: -.05em; line-height: 1; }
+.testcard .disc b span { color: var(--klein); }
+.testcard p { margin: .4em 0 0; background: #0b0c12; padding: .35em .8em; }
+.contactcard { background: var(--klein); color: #f4f3ef; }
+.contactcard h2 { margin: 0 0 .3em; font-family: var(--f-display); font-stretch: 75%; font-weight: 700; font-size: clamp(1.6rem, 4.6vw, 4rem); line-height: .95; letter-spacing: -.03em; }
+.contactcard h2 em { font-family: var(--f-body); font-weight: 400; }
+.contactcard a { font-style: italic; font-size: clamp(1rem, 2.2vw, 1.8rem); }
+.contactcard .label { display: block; margin-top: 1.2em; opacity: .8; }
+
+/* CRT layers */
+.scan, .glass, .vignette { position: absolute; inset: 0; pointer-events: none; z-index: 4; border-radius: inherit; }
+.scan { background: repeating-linear-gradient(to bottom, rgb(0 0 0 / .28) 0 1px, transparent 1px 3px); mix-blend-mode: multiply; }
+.vignette { box-shadow: inset 0 0 90px 20px rgb(0 0 0 / .75); background: radial-gradient(120% 100% at 50% 50%, transparent 60%, rgb(0 0 0 / .45)); }
+.glass { background: linear-gradient(155deg, rgb(255 255 255 / .09) 0%, transparent 32%), radial-gradient(60% 40% at 30% 18%, rgb(255 255 255 / .06), transparent 70%); }
+.screen.is-interactive .scan, .screen.is-interactive .vignette { opacity: .35; }
+canvas.static { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 3; image-rendering: pixelated; opacity: 0; transition: opacity .12s; pointer-events: none; }
+.screen.is-tuning canvas.static { opacity: 1; }
+.osd {
+  position: absolute; top: 7%; right: 8%; z-index: 5; font-family: var(--f-mono); font-weight: 700; color: var(--phosphor);
+  font-size: clamp(1rem, 2.6vw, 2.2rem); text-shadow: 0 0 8px rgb(141 255 158 / .8), 2px 0 0 rgb(255 0 80 / .35); opacity: 0; transition: opacity .3s;
+}
+.osd small { display: block; font-size: .45em; letter-spacing: .2em; text-align: right; }
+.screen.show-osd .osd { opacity: 1; }
+.lower {
+  position: absolute; left: 6%; bottom: 7%; z-index: 5; max-width: 80%; display: grid; gap: 2px;
+  transform: translateX(-12px); opacity: 0; transition: opacity .4s var(--ease), transform .5s var(--ease);
+}
+.screen.show-osd .lower { opacity: 1; transform: none; }
+.lower b { justify-self: start; background: var(--ink); color: #08090d; font-family: var(--f-display); font-weight: 700; font-size: clamp(.95rem, 2.2vw, 1.7rem); padding: .1em .45em; letter-spacing: -.01em; }
+.lower span { justify-self: start; background: var(--klein); color: #f4f3ef; font-family: var(--f-mono); font-size: clamp(.55rem, 1vw, .75rem); letter-spacing: .1em; text-transform: uppercase; padding: .35em .6em; }
+.screen.power-on .feed, .screen.power-on .card-host { animation: poweron .6s var(--ease) both; }
+@keyframes poweron { 0% { transform: scale(1, .004); filter: brightness(6); } 40% { transform: scale(1, .004); filter: brightness(6); } 70% { transform: scale(1, 1.05); filter: brightness(1.6); } 100% { transform: none; filter: none; } }
+.card-host { position: absolute; inset: 0; }
+
+/* control panel */
+.panel { display: grid; align-content: space-between; justify-items: center; padding-block: 6% 4%; gap: 14px; }
+.brand { font-family: var(--f-mono); font-weight: 700; font-size: clamp(.55rem, .9vw, .72rem); letter-spacing: .2em; color: #c8b98f; writing-mode: vertical-rl; transform: rotate(180deg); }
+.knob {
+  width: clamp(44px, 70%, 84px); aspect-ratio: 1; border-radius: 50%; border: 0; cursor: pointer; position: relative;
+  background: radial-gradient(circle at 35% 30%, #4a4540, #191715 70%); box-shadow: 0 6px 14px rgb(0 0 0 / .6), inset 0 1px 0 rgb(255 255 255 / .15);
+  transition: transform .5s var(--ease);
+}
+.knob::after { content: ""; position: absolute; left: 50%; top: 8%; width: 3px; height: 30%; margin-left: -1.5px; border-radius: 2px; background: #e8dcc0; }
+.knob:focus-visible { outline: 2px solid var(--klein); outline-offset: 4px; }
+.ticks { font-family: var(--f-mono); font-size: .6rem; color: #8c8270; letter-spacing: .1em; }
+.speaker { width: 70%; height: clamp(40px, 22%, 140px); border-radius: 8px; background: repeating-linear-gradient(to bottom, #0b0a09 0 3px, #24201c 3px 6px); }
+.led { width: 8px; height: 8px; border-radius: 50%; background: #ff3b3b; box-shadow: 0 0 10px #ff3b3b; }
+.stand { display: flex; justify-content: space-between; padding-inline: 14%; }
+.stand i { width: 10px; height: clamp(16px, 3vw, 34px); background: linear-gradient(#1a1714, #000); border-radius: 0 0 4px 4px; }
+
+@media (max-width: 700px) {
+  .stage { padding: 70px 12px 170px; }
+  .tv { width: 96vw; }
+  .cabinet { grid-template-columns: 1fr; padding: 12px; border-radius: 20px; }
+  .panel { grid-auto-flow: column; grid-template-columns: auto 1fr auto auto; align-items: center; padding: 0 4px; }
+  .brand { writing-mode: horizontal-tb; transform: none; }
+  .speaker { width: 100%; height: 22px; }
+  .knob { width: 44px; }
+  .ticks { display: none; }
+  .testcard p { display: none; }
+}
+
+/* ---------- dock ---------- */
+.dock {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 10; padding: 14px clamp(16px, 3vw, 36px) max(18px, env(safe-area-inset-bottom));
+  display: grid; grid-template-columns: 1fr auto 1fr; align-items: end; gap: 12px;
+}
+.intro { margin: 0; max-width: 34ch; font-size: clamp(.95rem, 1.2vw, 1.1rem); line-height: 1.35; color: #c9c6bf; }
+.intro b { font-family: var(--f-display); font-weight: 700; color: var(--ink); }
+.remote { display: flex; gap: 8px; align-items: center; justify-content: center; }
+.btn {
+  border: 1px solid var(--line); background: rgb(255 255 255 / .03); color: var(--ink); border-radius: 999px; padding: 10px 16px; cursor: pointer;
+  font-family: var(--f-mono); font-size: .72rem; letter-spacing: .12em; text-transform: uppercase; text-decoration: none; white-space: nowrap;
+  transition: background .25s var(--ease), border-color .25s var(--ease), color .25s;
+}
+.btn:hover { border-color: var(--ink); }
+.btn.primary { background: var(--klein); border-color: var(--klein); color: #f4f3ef; }
+.btn.primary:hover { background: #4b5bff; }
+.btn.round { width: 44px; height: 44px; padding: 0; display: grid; place-items: center; font-size: 1rem; }
+.btn[hidden] { display: none; }
+.btn:focus-visible { outline: 2px solid var(--klein); outline-offset: 3px; }
+.hint { justify-self: end; color: var(--muted); text-align: right; }
+@media (max-width: 900px) {
+  .dock { grid-template-columns: 1fr; justify-items: center; text-align: center; }
+  .intro { order: -1; max-width: 40ch; font-size: .92rem; }
+  .hint { justify-self: center; text-align: center; }
+}
+
+/* ---------- guide ---------- */
+.guide { width: min(720px, 94vw); max-height: 86svh; padding: 0; border: 1px solid var(--line); background: #0b0c12; color: var(--ink); }
+.guide::backdrop { background: rgb(0 0 0 / .7); backdrop-filter: blur(6px); }
+.guide header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid var(--line); background: var(--klein); color: #f4f3ef; }
+.guide h2 { margin: 0; font-family: var(--f-display); font-stretch: 75%; font-size: 1.6rem; letter-spacing: -.02em; }
+.guide ul { list-style: none; margin: 0; padding: 0; overflow: auto; max-height: calc(86svh - 70px); }
+.guide li button {
+  width: 100%; display: grid; grid-template-columns: 4.2rem 1fr auto; gap: 14px; align-items: baseline; text-align: left;
+  background: none; border: 0; border-bottom: 1px solid var(--line); padding: 14px 20px; cursor: pointer; color: var(--ink);
+}
+.guide li button:hover, .guide li button:focus-visible { background: rgb(58 76 255 / .14); outline: none; }
+.guide .ch { font-family: var(--f-mono); color: var(--phosphor); }
+.guide .t { font-family: var(--f-display); font-weight: 600; font-size: 1.15rem; }
+.guide .c { font-style: italic; color: var(--muted); font-size: .95rem; }
+.guide .close { background: none; border: 0; color: inherit; cursor: pointer; }
+@media (max-width: 560px) { .guide li button { grid-template-columns: 3.2rem 1fr; } .guide .c { grid-column: 2; } }
+
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+<header class="bar">
+  <a class="wordmark" href="../../">Esi<span>.</span></a>
+  <nav class="label">
+    <span class="onair">On air</span>
+    <button type="button" id="open-guide">Guide</button>
+    <a href="../../#contact">Contact</a>
+  </nav>
+</header>
+
+<main class="stage">
+  <h1 class="sr">Esi, web designer and creative developer</h1>
+  <div class="tv">
+    <div class="cabinet">
+      <div class="bezel">
+        <div class="screen" id="screen">
+          <div class="card-host" id="host"></div>
+          <canvas class="static" id="static" width="200" height="150"></canvas>
+          <div class="scan"></div><div class="vignette"></div><div class="glass"></div>
+          <div class="osd" id="osd">CH 00<small>▮▮▮▮▯</small></div>
+          <div class="lower" id="lower"><b></b><span></span></div>
+        </div>
+      </div>
+      <div class="panel">
+        <span class="brand">ESI·VISION</span>
+        <span class="ticks">CHANNEL</span>
+        <button class="knob" id="knob" type="button" aria-label="Next channel"></button>
+        <div class="speaker"></div>
+        <span class="led"></span>
+      </div>
+    </div>
+    <div class="stand"><i></i><i></i></div>
+  </div>
+</main>
+
+<div class="dock">
+  <p class="intro"><b>Esi</b> designs and builds websites for artists and independent brands. Every channel is a real site, running live.</p>
+  <div class="remote">
+    <button class="btn round" id="prev" type="button" aria-label="Previous channel">◀</button>
+    <button class="btn" id="interact" type="button">Use the site</button>
+    <a class="btn primary" id="visit" target="_blank" rel="noopener" href="#">Visit ↗</a>
+    <button class="btn round" id="next" type="button" aria-label="Next channel">▶</button>
+  </div>
+  <p class="hint label" id="hint">Scroll, swipe or press ← → to change channel</p>
+</div>
+
+<dialog class="guide" id="guide" aria-label="Channel guide">
+  <header><h2>Tonight on Esi Vision</h2><button class="close label" type="button" id="close-guide">Close</button></header>
+  <ul id="guide-list"></ul>
+</dialog>
+
+<script src="../../projects.js"></script>
+<script>
+(() => {
+  const ROOT = "../../";
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const all = window.PROJECTS || [];
+  // Every project with something to show becomes a channel; framed sites run live.
+  const shows = all.filter((p) => p.embed || p.image).sort((a, b) => (b.featured - a.featured));
+  const channels = [{ type: "test" }, ...shows.map((p) => ({ type: "show", p })), { type: "contact" }];
+  const num = (i) => (channels[i].type === "contact" ? 99 : i);
+  const pad = (n) => String(n).padStart(2, "0");
+
+  const screen = document.getElementById("screen");
+  const host = document.getElementById("host");
+  const osd = document.getElementById("osd");
+  const lower = document.getElementById("lower");
+  const knob = document.getElementById("knob");
+  const visit = document.getElementById("visit");
+  const interact = document.getElementById("interact");
+  let current = -1, busy = false, osdTimer;
+
+  /* ---------- static noise ---------- */
+  const sc = document.getElementById("static");
+  const sx = sc.getContext("2d");
+  const img = sx.createImageData(sc.width, sc.height);
+  let noiseOn = false;
+  const noise = () => {
+    if (!noiseOn) return;
+    const d = img.data;
+    for (let i = 0; i < d.length; i += 4) { const v = Math.random() * 255 | 0; d[i] = d[i + 1] = d[i + 2] = v; d[i + 3] = 255; }
+    sx.putImageData(img, 0, 0);
+    requestAnimationFrame(noise);
+  };
+  const tuning = (on) => { screen.classList.toggle("is-tuning", on); if (on && !noiseOn) { noiseOn = true; noise(); } if (!on) noiseOn = false; };
+
+  /* ---------- sound: a short burst of white noise, only after the visitor turns it on ---------- */
+  let audio = null;
+  const hiss = () => {
+    if (!audio) return;
+    const len = audio.sampleRate * 0.35, buf = audio.createBuffer(1, len, audio.sampleRate), ch = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) ch[i] = (Math.random() * 2 - 1) * (1 - i / len) * 0.25;
+    const src = audio.createBufferSource(); src.buffer = buf; src.connect(audio.destination); src.start();
+  };
+
+  /* ---------- test card bars ---------- */
+  const drawBars = (canvas) => {
+    const w = canvas.width = 640, h = canvas.height = 480, c = canvas.getContext("2d");
+    const cols = ["#c0c0c0", "#c0c000", "#00c0c0", "#00c000", "#c000c0", "#c00000", "#0000c0"];
+    cols.forEach((col, i) => { c.fillStyle = col; c.fillRect(i * w / 7, 0, w / 7 + 1, h * .68); });
+    const rev = ["#0000c0", "#131313", "#c000c0", "#131313", "#00c0c0", "#131313", "#c0c0c0"];
+    rev.forEach((col, i) => { c.fillStyle = col; c.fillRect(i * w / 7, h * .68, w / 7 + 1, h * .08); });
+    ["#00214c", "#ffffff", "#32006a", "#131313", "#090909", "#131313", "#1d1d1d"].forEach((col, i) => { c.fillStyle = col; c.fillRect(i * w / 7, h * .76, w / 7 + 1, h * .24); });
+  };
+
+  /* ---------- building a channel ---------- */
+  const SITE_W = 1200, SITE_H = 900; // 4:3, like the tube
+  const fit = () => {
+    const f = host.querySelector("iframe");
+    if (f) f.style.transform = `scale(${screen.clientWidth / SITE_W})`;
+  };
+  addEventListener("resize", fit);
+
+  const build = (ch) => {
+    host.innerHTML = "";
+    const feed = document.createElement("div");
+    feed.className = "feed";
+    host.append(feed);
+    let loaded = Promise.resolve();
+    if (ch.type === "test") {
+      feed.innerHTML = `<div class="card"><canvas class="bars"></canvas><div class="testcard"><div class="disc"><b>Esi<span>.</span></b></div><p class="label">Web design &amp; creative development · Turn the knob</p></div></div>`;
+      drawBars(feed.querySelector("canvas"));
+    } else if (ch.type === "contact") {
+      feed.innerHTML = `<div class="card contactcard"><div><h2>Have work that deserves a <em>better</em> home online?</h2><a href="mailto:es.khoshhal@gmail.com">es.khoshhal@gmail.com</a><span class="label">Or use the form on the main site</span></div></div>`;
+    } else {
+      const p = ch.p;
+      if (p.image) { const i = new Image(); i.src = ROOT + p.image; i.alt = ""; feed.append(i); }
+      if (p.embed && !reduce) {
+        const f = document.createElement("iframe");
+        f.src = p.url; f.title = `${p.title}, live`; f.width = SITE_W; f.height = SITE_H; f.tabIndex = -1;
+        f.setAttribute("allow", "autoplay");
+        feed.append(f); fit();
+        loaded = new Promise((res) => {
+          const t = setTimeout(res, 3500);
+          f.addEventListener("load", () => { clearTimeout(t); setTimeout(() => { f.classList.add("ready"); res(); }, 350); });
+        });
+      }
+    }
+    return loaded;
+  };
+
+  const showOsd = (ch, i) => {
+    osd.firstChild.textContent = `CH ${pad(num(i))}`;
+    const [b, s] = lower.children;
+    if (ch.type === "show") { b.textContent = ch.p.title; s.textContent = ch.p.client; lower.hidden = false; }
+    else if (ch.type === "test") { b.textContent = "Esi Vision"; s.textContent = `${shows.length} sites, all live`; lower.hidden = false; }
+    else { b.textContent = "Call the studio"; s.textContent = "Booking projects for 2027"; lower.hidden = false; }
+    screen.classList.add("show-osd");
+    clearTimeout(osdTimer);
+    osdTimer = setTimeout(() => screen.classList.remove("show-osd"), 3200);
+  };
+
+  const tune = async (i, first) => {
+    i = (i + channels.length) % channels.length;
+    if (i === current || busy) return;
+    busy = true; current = i;
+    const ch = channels[i];
+    setInteractive(false);
+    knob.style.transform = `rotate(${i * 32}deg)`;
+    visit.hidden = ch.type !== "show";
+    if (ch.type === "show") visit.href = ch.p.url;
+    interact.hidden = !(ch.type === "show" && ch.p.embed && !reduce);
+    try { history.replaceState(null, "", `#ch${pad(num(i))}`); } catch (e) {}
+    if (!first) { tuning(true); hiss(); await wait(reduce ? 0 : 260); }
+    const loaded = build(ch);
+    if (first) { screen.classList.add("power-on"); setTimeout(() => screen.classList.remove("power-on"), 700); }
+    showOsd(ch, i);
+    busy = false;
+    await Promise.race([loaded, wait(first ? 0 : 1200)]);
+    if (current === i) tuning(false);
+  };
+  const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+
+  /* ---------- using the site inside the tube ---------- */
+  const setInteractive = (on) => {
+    screen.classList.toggle("is-interactive", on);
+    interact.textContent = on ? "Back to channels" : "Use the site";
+    interact.classList.toggle("primary", on);
+  };
+  interact.addEventListener("click", () => setInteractive(!screen.classList.contains("is-interactive")));
+  addEventListener("keydown", (e) => { if (e.key === "Escape") setInteractive(false); });
+
+  /* ---------- controls ---------- */
+  const step = (d) => { if (!screen.classList.contains("is-interactive")) tune(current + d); };
+  document.getElementById("prev").addEventListener("click", () => tune(current - 1));
+  document.getElementById("next").addEventListener("click", () => tune(current + 1));
+  knob.addEventListener("click", () => tune(current + 1));
+  let wheelLock = 0;
+  addEventListener("wheel", (e) => {
+    if (screen.classList.contains("is-interactive") || document.getElementById("guide").open) return;
+    const now = performance.now();
+    if (now - wheelLock < 650 || Math.abs(e.deltaY) < 6) return;
+    wheelLock = now; step(e.deltaY > 0 ? 1 : -1);
+  }, { passive: true });
+  let digits = "", digitTimer;
+  addEventListener("keydown", (e) => {
+    if (document.getElementById("guide").open) return;
+    if (["ArrowRight", "ArrowDown", "PageDown"].includes(e.key)) { e.preventDefault(); step(1); }
+    if (["ArrowLeft", "ArrowUp", "PageUp"].includes(e.key)) { e.preventDefault(); step(-1); }
+    if (/^\d$/.test(e.key)) { // type a channel number, like a real remote
+      digits = (digits + e.key).slice(-2); clearTimeout(digitTimer);
+      digitTimer = setTimeout(() => { const n = +digits; digits = ""; const i = n === 99 ? channels.length - 1 : n; if (i < channels.length) tune(i); }, 700);
+    }
+  });
+  let ty = null, tx = null;
+  screen.addEventListener("touchstart", (e) => { ty = e.touches[0].clientY; tx = e.touches[0].clientX; }, { passive: true });
+  screen.addEventListener("touchend", (e) => {
+    if (ty === null || screen.classList.contains("is-interactive")) return;
+    const dy = e.changedTouches[0].clientY - ty, dx = e.changedTouches[0].clientX - tx;
+    if (Math.max(Math.abs(dx), Math.abs(dy)) > 40) step((Math.abs(dx) > Math.abs(dy) ? -dx : -dy) > 0 ? 1 : -1);
+    ty = tx = null;
+  });
+  if (matchMedia("(hover: none)").matches) document.getElementById("hint").textContent = "Swipe the screen to change channel";
+
+  /* ---------- guide (the quick list for busy clients) ---------- */
+  const guide = document.getElementById("guide");
+  document.getElementById("guide-list").innerHTML = channels.map((ch, i) => {
+    const t = ch.type === "show" ? ch.p.title : ch.type === "test" ? "Test card" : "Contact";
+    const c = ch.type === "show" ? ch.p.medium : ch.type === "test" ? "Start here" : "es.khoshhal@gmail.com";
+    return `<li><button type="button" data-ch="${i}"><span class="ch">CH ${pad(num(i))}</span><span class="t">${t}</span><span class="c">${c}</span></button></li>`;
+  }).join("");
+  document.getElementById("open-guide").addEventListener("click", () => guide.showModal());
+  document.getElementById("close-guide").addEventListener("click", () => guide.close());
+  guide.addEventListener("click", (e) => {
+    const b = e.target.closest("[data-ch]");
+    if (b) { guide.close(); tune(+b.dataset.ch); } else if (e.target === guide) guide.close();
+  });
+
+  /* first click anywhere turns the speaker on (browsers block sound before that) */
+  addEventListener("pointerdown", () => { if (!audio) try { audio = new AudioContext(); } catch (e) {} }, { once: true });
+
+  const start = /#ch(\d\d)/.exec(location.hash);
+  const startIdx = start ? (+start[1] === 99 ? channels.length - 1 : Math.min(+start[1], channels.length - 1)) : 0;
+  screen.classList.add("is-on");
+  tune(startIdx, true);
+})();
+</script>
+</body>
+</html>
