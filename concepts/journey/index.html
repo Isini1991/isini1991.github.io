@@ -45,6 +45,8 @@
   .title { transition:top 0s .12s; }
   body.work .title { top:77%; }
   body.work .title h1 { font-size:clamp(30px,3.6vw,58px); }
+  .num { font-size:11px; letter-spacing:.14em; color:var(--dim); margin-bottom:10px; opacity:0; transition:opacity .6s .2s; font-variant-numeric:tabular-nums; }
+  .title.in .num { opacity:1; }
   .title p { margin-top:14px; font-size:14px; color:var(--dim); opacity:0; transition:opacity .6s .35s; text-shadow:0 1px 20px rgba(0,0,0,.8); }
   .title.in p { opacity:1; }
   .side { position:absolute; top:47%; font-size:13px; opacity:0; transition:opacity 1s .4s; transform:translateY(-50%); }
@@ -52,7 +54,7 @@
   .intro .side { opacity:.86; }
 
   .bottom { position:fixed; left:0; right:0; bottom:0; z-index:4; display:grid; grid-template-columns:1fr auto 1fr;
-    align-items:end; padding:0 28px 26px; font-size:13px; }
+    align-items:end; padding:0 28px calc(26px + env(safe-area-inset-bottom)); font-size:13px; }
   .nb { display:flex; flex-direction:column; gap:3px; opacity:.9; transition:opacity .3s; max-width:40vw; }
   .nb small { font-size:9px; letter-spacing:.12em; text-transform:uppercase; opacity:.6; }
   .nb b { font-weight:500; }
@@ -101,15 +103,32 @@
     .top { padding:16px 18px; }
     .nav { gap:14px; } .nav .dash, .nav .about { display:none; }
     .side { display:none; }
-    .title { top:44%; }
-    body.work .title { top:79%; }
-    body.work .title h1 { font-size:30px; }
-    .title p { margin-top:8px; font-size:13px; }
-    .bottom { padding:0 18px 20px; grid-template-columns:1fr 1fr; row-gap:14px; }
-    .bottom .center { grid-column:1 / -1; grid-row:1; }
+    .title { top:42.5%; }
+    .title h1 { font-size:34px; }
+    .title p { margin:8px auto 0; font-size:13px; max-width:230px; line-height:1.4; }
+    body.work .title { top:auto; bottom:calc(98px + env(safe-area-inset-bottom)); transform:translateX(-50%); }
+    body.work .title h1 { font-size:28px; }
+    body.work .title p { max-width:300px; }
+    .num { margin-bottom:6px; }
+    .bottom { padding:0 18px calc(22px + env(safe-area-inset-bottom)); grid-template-columns:44px 1fr 44px; align-items:center; }
+    .nb { width:44px; height:44px; border-radius:50%; border:1px solid var(--line); align-items:center; justify-content:center; background:rgba(5,5,5,.35); }
+    .nb small, .nb b { display:none; }
+    .nb::before { content:""; width:8px; height:8px; border-left:1.5px solid var(--ink); border-bottom:1.5px solid var(--ink); transform:translateX(2px) rotate(45deg); }
+    .nb.r::before { transform:translateX(-2px) rotate(-135deg); }
+    .nb.r { justify-self:end; align-items:center; }
     .index ol { columns:1; }
     .hint { display:none; }
-    .contact-links { flex-direction:column; align-items:center; top:calc(44% + 64px); }
+    .contact-links { flex-wrap:wrap; justify-content:center; width:300px; top:calc(100% + 22px); }
+  }
+  @media (max-height:520px) and (min-width:761px) {
+    .top { padding:12px 22px; }
+    .side { display:none; }
+    .title h1 { font-size:30px; }
+    body.work .title { top:auto; bottom:62px; transform:translateX(-50%); }
+    body.work .title h1 { font-size:24px; }
+    body.work .title p { display:none; }
+    .num { margin-bottom:4px; }
+    .bottom { padding-bottom:calc(14px + env(safe-area-inset-bottom)); }
   }
   @media (prefers-reduced-motion:reduce) { .title h1 .ch { transition:none; } }
 </style>
@@ -130,7 +149,7 @@
 </header>
 
 <div class="stage" id="stage">
-  <div class="title" id="title"><h1 id="h1"></h1><p id="sub"></p>
+  <div class="title" id="title"><div class="num" id="num"></div><h1 id="h1"></h1><p id="sub"></p>
     <div class="contact-links">
       <a class="pill solid" href="mailto:es.khoshhal@gmail.com">es.khoshhal@gmail.com</a>
       <a class="pill ghost" href="https://www.instagram.com/xoshhaal/" target="_blank" rel="noopener">Instagram</a>
@@ -177,6 +196,7 @@ const PICK = [
 ];
 const NO_FRAME = ["vigorvigorous.com", "daisrecords.com", "brentfoster.com"];
 const portrait = () => innerWidth / innerHeight < 0.8;
+const touch = matchMedia("(hover: none)").matches;
 
 const all = window.PROJECTS || [];
 const scenes = [{ type: "intro", title: "Esi Khoshhal", sub: "Websites for artists, musicians and independent brands" }];
@@ -198,7 +218,7 @@ const VS = `#version 300 es
 in vec2 a; void main(){ gl_Position = vec4(a,0.,1.); }`;
 const FS = `#version 300 es
 precision highp float;
-uniform vec2 uRes; uniform float uTime, uPos, uSpacing, uZoom, uOpen, uZoomSlot, uCy;
+uniform vec2 uRes; uniform float uTime, uPos, uSpacing, uZoom, uOpen, uZoomSlot, uCy, uRough, uTop;
 uniform vec2 uHalf, uMouse;
 uniform sampler2D uT0, uT1, uT2, uT3;
 uniform vec4 uInfo[4];   // x hasTex, y texAspect, z scene index, w visible
@@ -248,9 +268,9 @@ void main(){
     vec2 q = p - c;
     float seed = k*7.31;
     float edge = (1.-isZ);
-    float d = sdBox(q, half_, .06*(1.-isZ));
-    d += (fbm(q*2.2 + seed + vec2(t*.04, -t*.03)) - .5) * .11 * edge;
-    d += (vn(q*26. + seed) - .5) * .012 * edge;
+    float d = sdBox(q, half_, .05*uRough*(1.-isZ));
+    d += (fbm(q*2.2/uRough + seed + vec2(t*.04, -t*.03)) - .5) * .11 * uRough * edge;
+    d += (vn(q*26./uRough + seed) - .5) * .012 * mix(1., uRough, .5) * edge;
     float inside = smoothstep(px, -px, d);
 
     vec3 g = uGlow[i];
@@ -267,6 +287,7 @@ void main(){
         if(boxA > A) s.y = A/boxA; else s.x = boxA/A;
         float z = mix(.9, 1., isZ);
         vec2 uv = .5 + (b-.5)*s*z - m*.018*s*(1.-isZ);
+        uv.y += (1. - s.y*z) * .5 * uTop * (1.-isZ);
         uv += (vec2(vn(b*5.+t*.15), vn(b*5.-t*.15+9.))-.5) * .006 * edge;
         vec2 dx = dFdx(uv), dy = dFdy(uv);
         c2 = tex(i, uv, dx, dy);
@@ -320,7 +341,7 @@ gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 3,-1, -1,3]), gl.STATIC_
 const aLoc = gl.getAttribLocation(prog, "a"); gl.enableVertexAttribArray(aLoc); gl.vertexAttribPointer(aLoc, 2, gl.FLOAT, false, 0, 0);
 const U = n => gl.getUniformLocation(prog, n);
 const u = { res: U("uRes"), time: U("uTime"), pos: U("uPos"), spacing: U("uSpacing"), zoom: U("uZoom"), open: U("uOpen"),
-  zslot: U("uZoomSlot"), cy: U("uCy"), half: U("uHalf"), mouse: U("uMouse"), info: U("uInfo"), glow: U("uGlow") };
+  zslot: U("uZoomSlot"), cy: U("uCy"), rough: U("uRough"), top: U("uTop"), half: U("uHalf"), mouse: U("uMouse"), info: U("uInfo"), glow: U("uGlow") };
 ["uT0","uT1","uT2","uT3"].forEach((n, i) => gl.uniform1i(U(n), i));
 
 const blank = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, blank);
@@ -351,15 +372,22 @@ function upload(i, im) {
 
 /* ---------- state ---------- */
 let pos = 0, target = 0, zoom = 0, zoomTarget = 0, open = 0, mx = 0, my = 0, smx = 0, smy = 0, settled = -1;
-const half = [0, 0]; let spacing = 1, cy = .015;
+const half = [0, 0]; let spacing = 1, cy = .015, rough = 1, topAlign = 0;
 function layout() {
   const dpr = Math.min(devicePixelRatio || 1, innerWidth < 760 ? 1.5 : 1.6);
   cv.width = Math.round(innerWidth * dpr); cv.height = Math.round(innerHeight * dpr);
   gl.viewport(0, 0, cv.width, cv.height);
   const asp = innerWidth / innerHeight;
-  if (portrait()) { half[0] = asp * .5 * .8; half[1] = .27; cy = .07; }
-  else { half[0] = Math.min(asp * .5 * .6, .52); half[1] = Math.min(half[0] / 1.55, .33); cy = .03; }
-  spacing = asp * .5 * .82 + half[0];
+  if (portrait()) {
+    // phone: a tall, phone-shaped frame that shows the top of each site, with neighbours peeking in
+    half[0] = asp * .5 * .66; half[1] = Math.min(half[0] / .54, .29); half[0] = half[1] * .54;
+    cy = .075; rough = .55; topAlign = 1;
+    spacing = asp * .5 * .74 + half[0];
+  } else {
+    const short = innerHeight < 520; // phones held sideways
+    half[0] = Math.min(asp * .5 * .6, .52); half[1] = Math.min(half[0] / 1.55, short ? .26 : .33); cy = short ? -.01 : .03; rough = 1; topAlign = 0;
+    spacing = asp * .5 * .82 + half[0];
+  }
 }
 addEventListener("resize", () => { layout(); reloadForOrientation(); });
 layout();
@@ -382,13 +410,14 @@ function showText(i) {
   titleEl.classList.toggle("contact", s.type === "contact");
   setTimeout(() => {
     h1.innerHTML = split(s.title); sub.textContent = s.sub || "";
+    $("num").textContent = s.type === "work" ? `${String(i).padStart(2, "0")} / ${String(N - 2).padStart(2, "0")}` : "";
     requestAnimationFrame(() => requestAnimationFrame(() => titleEl.classList.add("in")));
   }, 120);
   const pv = scenes[i-1], nx = scenes[i+1];
   $("prev").classList.toggle("hide", !pv); $("next").classList.toggle("hide", !nx);
   if (pv) $("prev").querySelector("b").textContent = pv.type === "intro" ? "Start" : pv.title;
   if (nx) $("next").querySelector("b").textContent = nx.type === "contact" ? "Contact" : nx.title;
-  if (s.type === "intro") { cta.innerHTML = 'Scroll to start exploring <span class="arrow"></span>'; cta.href = "#"; cta.removeAttribute("target"); }
+  if (s.type === "intro") { cta.innerHTML = touch ? 'Swipe to start exploring' : 'Scroll to start exploring <span class="arrow"></span>'; cta.href = "#"; cta.removeAttribute("target"); }
   else if (s.type === "work") { cta.innerHTML = s.framable ? "Step inside the site" : "Visit the site ↗";
     cta.href = s.url; cta.target = s.framable ? "" : "_blank"; }
   else { cta.innerHTML = "Back to the start"; cta.href = "#"; cta.removeAttribute("target"); }
@@ -500,7 +529,7 @@ function frame(now) {
   }
   gl.uniform2f(u.res, cv.width, cv.height); gl.uniform1f(u.time, t);
   gl.uniform1f(u.pos, pos); gl.uniform1f(u.spacing, spacing); gl.uniform1f(u.zoom, zoom);
-  gl.uniform1f(u.open, open); gl.uniform1f(u.cy, cy); gl.uniform1f(u.zslot, zoomSlot);
+  gl.uniform1f(u.open, open); gl.uniform1f(u.cy, cy); gl.uniform1f(u.rough, rough); gl.uniform1f(u.top, topAlign); gl.uniform1f(u.zslot, zoomSlot);
   gl.uniform2f(u.half, half[0], half[1]); gl.uniform2f(u.mouse, smx, smy);
   gl.uniform4fv(u.info, info); gl.uniform3fv(u.glow, glowArr);
   gl.drawArrays(gl.TRIANGLES, 0, 3);
