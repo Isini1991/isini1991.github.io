@@ -38,7 +38,7 @@ const N = items.length;
 const canvas = $("space");
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: "high-performance" });
 renderer.setPixelRatio(Math.min(devicePixelRatio || 1, phone() ? 1.5 : 1.75));
-renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFShadowMap; renderer.shadowMap.autoUpdate = false; // shadows are redrawn every few frames, not every frame
 const scene = new THREE.Scene();
 scene.fog = new THREE.Fog("#ffc9a0", 26, 150);
 const camera = new THREE.PerspectiveCamera(62, 1, .1, 900);
@@ -157,7 +157,7 @@ sandMat.onBeforeCompile = sh => {
       diffuseColor.rgb += g.g * .07 * (1. - g.r);`);
 };
 {
-  const g = new THREE.PlaneGeometry(700, 700, 260, 260); g.rotateX(-Math.PI / 2);
+  const g = new THREE.PlaneGeometry(700, 700, 200, 200); g.rotateX(-Math.PI / 2);
   const P = g.attributes.position, cols = new Float32Array(P.count * 3);
   const low = new THREE.Color("#d9775f"), mid = new THREE.Color("#f2a57d"), high = new THREE.Color("#ffd8b4"), tmp = new THREE.Color();
   for (let i = 0; i < P.count; i++) {
@@ -169,7 +169,7 @@ sandMat.onBeforeCompile = sh => {
   }
   g.setAttribute("color", new THREE.BufferAttribute(cols, 3));
   g.computeVertexNormals();
-  const sand = new THREE.Mesh(g, sandMat); sand.receiveShadow = true; sand.castShadow = true;
+  const sand = new THREE.Mesh(g, sandMat); sand.receiveShadow = true;
   scene.add(sand);
 }
 const hemi = new THREE.HemisphereLight("#ffe3d0", "#b8607a", 1.15); scene.add(hemi);
@@ -316,7 +316,7 @@ const rnd = (() => { let s = 7; return () => (s = (s * 16807) % 2147483647) / 21
       m.position.set(x, duneH(x, z) - sc * .15, z); m.castShadow = m.receiveShadow = true; scene.add(m);
     }
   }
-  const blades = phone() ? 700 : 1400, grass = new THREE.InstancedMesh(new THREE.ConeGeometry(.022, .7, 3).translate(0, .35, 0), new THREE.MeshLambertMaterial({ color: "#9a6a45" }), blades);
+  const blades = phone() ? 500 : 1000, grass = new THREE.InstancedMesh(new THREE.ConeGeometry(.022, .7, 3).translate(0, .35, 0), new THREE.MeshLambertMaterial({ color: "#9a6a45" }), blades);
   const o = new THREE.Object3D(); let b = 0;
   while (b < blades) {
     const a = rnd() * Math.PI * 2, r = 15 + Math.pow(rnd(), 1.4) * 70, cx = Math.sin(a) * r, cz = -Math.cos(a) * r;
@@ -421,7 +421,7 @@ const G = { yaw: 0, tyaw: 0, vyaw: 0, fov: 62, tfov: 62, pitch: 0, tpitch: 0, fl
 const baseFov = () => portrait() ? 74 : 62;
 const CAM = { pos: new THREE.Vector3(0, 7.5, 36), look: new THREE.Vector3(0, 4.2, 0), fov: 48 };
 const TP = new THREE.Vector3(), TL = new THREE.Vector3(), UP = new THREE.Vector3(0, 1, 0);
-let place = "work", travel = false, TF = 62;
+let place = "work", travel = false, travelT = 0, TF = 62;
 function targetPose(fl) {
   if (place === "services") {
     const ph = phone();
@@ -444,7 +444,7 @@ function targetPose(fl) {
   TF = lerp(48, G.fov, fl);
 }
 
-const composer = new EffectComposer(renderer, new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples: phone() ? 2 : 4 }));
+const composer = new EffectComposer(renderer, new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples: 0 }));
 composer.addPass(new RenderPass(scene, camera));
 const bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), .42, .5, 1);
 composer.addPass(bloom);
@@ -459,6 +459,41 @@ const finish = new ShaderPass({ // a soft vignette and a little film grain
       c.rgb += (h(vUv * 917.3 + fract(uTime * 7.) * 31.) - .5) * .03;
       gl_FragColor = c; }` });
 composer.addPass(finish);
+
+/* ---------- quality: start sensibly, and step down if the device struggles ---------- */
+const QUAL = [
+  { dpr: 1, samples: 0, shadow: 0, bloom: false, grain: false, every: 0 },   // low
+  { dpr: 1.25, samples: 0, shadow: 1024, bloom: true, grain: true, every: 4 }, // medium
+  { dpr: 1.5, samples: 4, shadow: 2048, bloom: true, grain: true, every: 2 },  // high
+];
+let q = phone() ? 1 : 2;
+function applyQuality() {
+  const Q = QUAL[q];
+  renderer.setPixelRatio(Math.min(devicePixelRatio || 1, Q.dpr));
+  const shadows = !!Q.shadow;
+  if (renderer.shadowMap.enabled !== shadows) { renderer.shadowMap.enabled = shadows; scene.traverse(o => { if (o.material) [].concat(o.material).forEach(m => (m.needsUpdate = true)); }); }
+  sunLight.castShadow = shadows;
+  if (shadows && sunLight.shadow.mapSize.x !== Q.shadow) { sunLight.shadow.mapSize.set(Q.shadow, Q.shadow); if (sunLight.shadow.map) { sunLight.shadow.map.dispose(); sunLight.shadow.map = null; } }
+  renderer.shadowMap.needsUpdate = true;
+  bloom.enabled = Q.bloom; finish.enabled = Q.grain;
+  [composer.renderTarget1, composer.renderTarget2].forEach(r => { if (r.samples !== Q.samples) { r.samples = Q.samples; r.dispose(); } });
+  if (typeof resize === "function") resize();
+}
+let frameNo = 0, lastNow = 0, ema = 16, slowFor = 0, lastQ = 0, lastInput = 0;
+const poke = () => (lastInput = performance.now());
+["pointermove", "pointerdown", "wheel", "keydown", "touchmove"].forEach(ev => addEventListener(ev, poke, { passive: true }));
+// a hidden tab pauses frames; that gap is not a slow device
+document.addEventListener("visibilitychange", () => { lastNow = 0; slowFor = 0; });
+function watchSpeed(now, still) {
+  const ms = lastNow ? Math.min(now - lastNow, 200) : 16; lastNow = now;
+  // while idle at half rate the gaps are cheap skipped frames, so they say nothing
+  if (still || !S.entered || G.fly < 1) { slowFor = 0; return; }
+  ema += (ms - ema) * .08;
+  slowFor = ema > 25 ? slowFor + ms : 0;
+  if (slowFor > 1600 && q > 0 && now - lastQ > 2500) {
+    q--; applyQuality(); lastQ = now; slowFor = 0;
+  }
+}
 function resize() {
   renderer.setSize(innerWidth, innerHeight, false);
   composer.setPixelRatio(renderer.getPixelRatio()); composer.setSize(innerWidth, innerHeight);
@@ -479,9 +514,12 @@ const HINTS = {
 };
 function setPlace(p) {
   if (!HINTS[p]) p = "work";
-  if (!S.entered) enter();
+  // the first entry flies in on its own; later moves glide between places
+  const first = !S.entered;
+  if (first) enter();
+  if (!first || p === "services" || p === "contact") { travel = true; travelT = performance.now(); }
   closePanel(true);
-  place = p; travel = true;
+  place = p;
   document.body.dataset.place = p;
   if (p === "work") { G.tpitch = 0; G.tfov = baseFov(); }
   if (p === "about") { G.tpitch = phone() ? .02 : .8; G.tfov = phone() ? 88 : baseFov(); } // on phones the sheet covers the lower half, so the stars sit high
@@ -757,7 +795,7 @@ function liveSite(now) {
   }
   if (cand >= 0 && !items[cand].framable) cand = -1;
   if (cand !== LV.cand) { LV.cand = cand; LV.since = now; }
-  if (LV.cand !== LV.i && (now - LV.since > 650 || LV.cand < 0)) {
+  if (LV.cand !== LV.i && (now - LV.since > 1200 || LV.cand < 0)) {
     LV.i = LV.cand; LV.ready = 0; LV.token++;
     livewin.classList.remove("on");
     liveFrame.src = LV.i >= 0 ? items[LV.i].p.url : "about:blank";
@@ -855,7 +893,14 @@ let mx = 0, my = 0, smx = 0, smy = 0, lastTrailFade = 0;
 addEventListener("pointermove", e => { mx = e.clientX / innerWidth - .5; my = e.clientY / innerHeight - .5; }, { passive: true });
 const starPath = $("starLines").querySelector("path"), camFwd = new THREE.Vector3();
 function tick() {
-  const dt = Math.min(clock.getDelta(), .05), t = clock.elapsedTime, now = performance.now();
+  requestAnimationFrame(tick);
+  const now = performance.now();
+  frameNo++;
+  // when nothing is moving, draw at half rate to leave room for the live site and save battery
+  const still = now - lastInput > 2500 && !travel && Math.abs(G.tyaw - G.yaw) < .001 && Math.abs(SUN.tel - SUN.el) < .001 && G.fly >= 1;
+  watchSpeed(now, still);
+  if (still && frameNo % 2) return;
+  const dt = Math.min(clock.getDelta(), .05), t = clock.elapsedTime;
   const k = reduce ? 1 : 1 - Math.exp(-dt * 5);
   smx += (mx - smx) * (1 - Math.exp(-dt * 2)); smy += (my - smy) * (1 - Math.exp(-dt * 2));
   gust *= Math.exp(-dt * 1.4);
@@ -880,7 +925,7 @@ function tick() {
   finish.uniforms.uTime.value = t;
 
   // trails slowly fill back in
-  if (now - trailLive < 25000 && now - lastTrailFade > 60) {
+  if (now - trailLive < 25000 && now - lastTrailFade > 90) {
     tctx.globalCompositeOperation = "source-over"; tctx.fillStyle = `rgba(0,0,0,${.012 + gust * .03})`; tctx.fillRect(0, 0, TR, TR);
     trailTex.needsUpdate = true; lastTrailFade = now;
   }
@@ -917,7 +962,7 @@ function tick() {
   if (travel && !reduce) {
     const kt = 1 - Math.exp(-dt * 2.6);
     CAM.pos.lerp(TP, kt); CAM.look.lerp(TL, kt); CAM.fov += (TF - CAM.fov) * kt;
-    if (CAM.pos.distanceTo(TP) < .03 && CAM.look.distanceTo(TL) < .06 && Math.abs(CAM.fov - TF) < .2) travel = false;
+    if ((CAM.pos.distanceTo(TP) < .03 && CAM.look.distanceTo(TL) < .06 && Math.abs(CAM.fov - TF) < .2) || now - travelT > 4000) travel = false;
   } else { CAM.pos.copy(TP); CAM.look.copy(TL); CAM.fov = TF; }
   camera.position.copy(CAM.pos); camera.fov = CAM.fov; camera.updateProjectionMatrix(); camera.lookAt(CAM.look);
   camera.updateMatrixWorld();
@@ -941,19 +986,20 @@ function tick() {
   starPath.setAttribute("d", path); starPath.style.opacity = sv * .8;
 
   hover();
+  const Q = QUAL[q];
+  if (Q.shadow && (frameNo % Q.every === 0 || Math.abs(SUN.tel - SUN.el) > .001)) renderer.shadowMap.needsUpdate = true;
   composer.render();
   placeSun();
   liveSite(now);
   caption();
-  requestAnimationFrame(tick);
 }
 
 /* ---------- start ---------- */
-resize();
+applyQuality();
 G.fov = G.tfov = baseFov();
 let loaded = 0;
 const jobs = items.map((it, i) => new Promise(res => loader.load(it.src, tex => {
-  tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+  tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = Math.min(4, renderer.capabilities.getMaxAnisotropy());
   const f = frames[i]; f.mat.map = tex; f.mat.needsUpdate = true;
   // the frame's light takes the colour of the site
   const c = document.createElement("canvas"); c.width = c.height = 4; const x = c.getContext("2d");
