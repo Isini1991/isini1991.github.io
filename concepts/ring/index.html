@@ -11,19 +11,37 @@
 <link rel="apple-touch-icon" href="../../apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Geist:wght@400;500;600&display=swap">
 <link rel="stylesheet" href="../space/space.css">
+<link rel="stylesheet" href="ring.css">
 </head>
 <body class="grab">
-<canvas id="space" aria-label="A ring of websites around you"></canvas>
+<canvas id="space" aria-label="A ring of websites in the desert at dusk"></canvas>
+
+<!-- the site you face, playing live inside its frame -->
+<div class="livewin" id="livewin" aria-hidden="true"><iframe id="liveFrame" tabindex="-1" title="Live preview" loading="eager"></iframe><span class="livetag">Live</span></div>
+<div class="stars" id="stars"><svg id="starLines" aria-hidden="true"><path d=""/></svg></div>
+<div class="sunTag" id="sunTag" aria-hidden="true">Drag the sun</div>
 
 <header class="top">
   <a class="logo" id="home" href="#">Esi</a>
   <nav class="nav" aria-label="Main">
-    <button class="btn glass" id="openList" type="button">All projects</button>
-    <a class="btn light" href="mailto:es.khoshhal@gmail.com">Contact</a>
+    <a class="btn glass on" data-go="work" href="#">Work</a>
+    <a class="btn glass" data-go="about" href="#about">About</a>
+    <a class="btn glass" data-go="services" href="#services">Services</a>
+    <a class="btn light" data-go="contact" href="#contact">Contact</a>
+    <button class="btn glass snd" data-sound type="button" aria-pressed="false"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2 8h3l4-3v10l-4-3H2z" fill="currentColor"/><path d="M12.5 7.5c1 1.4 1 3.6 0 5M14.8 5.5c2 2.6 2 6.4 0 9" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span>Sound off</span></button>
   </nav>
+  <button class="btn glass menuBtn" id="menuBtn" type="button">Menu</button>
 </header>
+
+<div class="menu" id="menu">
+  <a data-go="work" href="#">Work</a>
+  <a data-go="about" href="#about">About</a>
+  <a data-go="services" href="#services">Services</a>
+  <a data-go="contact" href="#contact">Contact</a>
+  <button class="btn glass snd" data-sound type="button" aria-pressed="false"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2 8h3l4-3v10l-4-3H2z" fill="currentColor"/><path d="M12.5 7.5c1 1.4 1 3.6 0 5M14.8 5.5c2 2.6 2 6.4 0 9" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span>Sound off</span></button>
+</div>
 
 <section class="intro" aria-label="Introduction">
   <div class="kick">Web designer &amp; creative developer</div>
@@ -34,7 +52,11 @@
   </div>
 </section>
 
-<div class="hint">Drag to turn · Click a site</div>
+<div class="hint" id="hint"></div>
+<div class="dock">
+  <label class="time" title="Time of day"><span aria-hidden="true">☾</span><input id="time" type="range" min="-32" max="55" value="15" aria-label="Time of day"><span aria-hidden="true">☀</span></label>
+  <button class="btn glass" id="openList" type="button">All projects</button>
+</div>
 <div class="tip" id="tip"></div>
 
 <aside class="panel" aria-live="polite">
@@ -54,6 +76,94 @@
   </div>
 </aside>
 
+<!-- About: you look up into the sky -->
+<section class="place-sheet" id="sh-about" aria-label="About">
+  <button class="x" type="button" aria-label="Back to the work">×</button>
+  <div class="kick">About</div>
+  <h2>Websites made with the same care as the work.</h2>
+  <p class="lead">Artists and small brands make things with care. I build the websites that show it, with the same attention to material, pace and detail that went into the work itself.</p>
+  <p>I work closely with a small number of clients each year, from the first sketch to launch. Every site is designed and coded by me, so what we agree on in the design is what ships.</p>
+  <p>The stars above the ring are the people I have built for: bands, labels, photographers and studios. Click one to find their site in the ring.</p>
+  <ul class="facts">
+    <li><b>14</b><span>sites in this space</span></li>
+    <li><b>1</b><span>person, design and code</span></li>
+    <li><b>3</b><span>worlds: music, art, photography</span></li>
+  </ul>
+  <div class="row">
+    <a class="btn solid" data-go="contact" href="#contact">Work with me</a>
+    <a class="btn ghost" href="https://www.instagram.com/xoshhaal/" target="_blank" rel="noopener">Instagram</a>
+    <a class="btn ghost" href="https://www.linkedin.com/in/esmaeil-khoshhal-30028b52/" target="_blank" rel="noopener">LinkedIn</a>
+  </div>
+</section>
+
+<!-- Services: written in the sand -->
+<section class="place-sheet" id="sh-services" aria-label="Services">
+  <button class="x" type="button" aria-label="Back to the work">×</button>
+  <div class="kick">Services</div>
+  <h2>What I can make for you</h2>
+  <ul class="svc">
+    <li><b>Art direction</b><span>Your identity, translated to the screen.</span></li>
+    <li><b>Web design</b><span>From the first sketch to a full set of pages in Figma.</span></li>
+    <li><b>Creative code</b><span>WebGL, motion and 3D that serve the work, never hide it.</span></li>
+    <li><b>Shops for makers</b><span>Shopify or headless shops for records, prints and objects.</span></li>
+    <li><b>Archives &amp; CMS</b><span>Catalogues and archives you can update yourself.</span></li>
+  </ul>
+  <h3>How a project runs</h3>
+  <ol class="steps">
+    <li><b>Listen</b><span>We talk about the work, the audience and how the site should feel.</span></li>
+    <li><b>Sketch</b><span>I design the key pages and the motion, and we shape them together.</span></li>
+    <li><b>Build</b><span>I code the site and set up the content so you can edit it.</span></li>
+    <li><b>Launch</b><span>We go live, and I stay around for fixes and small changes.</span></li>
+  </ol>
+  <div class="row"><a class="btn solid" data-go="contact" href="#contact">Start a project</a></div>
+</section>
+
+<!-- Contact: by the fire -->
+<section class="place-sheet" id="sh-contact" aria-label="Contact">
+  <button class="x" type="button" aria-label="Back to the work">×</button>
+  <div class="kick">Contact · Booking projects for 2027</div>
+  <h2>Have work that deserves a better home online?</h2>
+  <form class="cform" id="cform" action="https://formsubmit.co/es.khoshhal@gmail.com" method="POST">
+    <fieldset class="chips">
+      <legend>What are you making?</legend>
+      <label><input type="radio" name="project" value="Portfolio" checked><span>Portfolio</span></label>
+      <label><input type="radio" name="project" value="Music or label site"><span>Music or label</span></label>
+      <label><input type="radio" name="project" value="Shop"><span>Shop</span></label>
+      <label><input type="radio" name="project" value="Something else"><span>Something else</span></label>
+    </fieldset>
+    <label class="field"><span>Your name</span><input type="text" name="name" required autocomplete="name"></label>
+    <label class="field"><span>Your email</span><input type="email" name="email" required autocomplete="email"></label>
+    <label class="field"><span>Tell me about it</span><textarea name="message" rows="3" required placeholder="The work, the people, the timing"></textarea></label>
+    <input type="hidden" name="_subject" value="New enquiry from your portfolio">
+    <input type="hidden" name="_template" value="table">
+    <input type="hidden" name="_captcha" value="false">
+    <input type="hidden" name="_next" value="https://isini1991.github.io/#contact">
+    <input class="honey" type="text" name="_honey" tabindex="-1" autocomplete="off" aria-hidden="true">
+    <div class="form-foot">
+      <button class="btn solid send" type="submit"><span>Send message</span></button>
+      <p class="form-status" id="form-status" role="status" aria-live="polite"></p>
+    </div>
+  </form>
+  <div class="direct">
+    <span>Or write directly</span>
+    <a class="email" id="email" href="mailto:es.khoshhal@gmail.com">es.khoshhal@gmail.com</a>
+    <div class="row">
+      <button class="btn ghost" id="copy" type="button">Copy email</button>
+      <a class="btn ghost" href="https://www.instagram.com/xoshhaal/" target="_blank" rel="noopener">Instagram</a>
+      <a class="btn ghost" href="https://www.linkedin.com/in/esmaeil-khoshhal-30028b52/" target="_blank" rel="noopener">LinkedIn</a>
+    </div>
+  </div>
+  <h3>Questions</h3>
+  <div class="faq">
+    <details><summary>What do you need from me to start?</summary><p>A short note about the work and who it is for, a few sites you like, and any images or text you already have. We can shape the rest together.</p></details>
+    <details><summary>How long does a website take?</summary><p>It depends on the size. A focused portfolio is quicker than a shop or an archive. Tell me your timing and I will say honestly if it fits.</p></details>
+    <details><summary>Can I update the site myself?</summary><p>Yes. Where it makes sense I set up a simple CMS and show you how to use it.</p></details>
+    <details><summary>Do you work remotely?</summary><p>Yes. Projects run online, with calls at times that suit us both.</p></details>
+    <details><summary>What does a website cost?</summary><p>Every project is different. Send a few details and I will reply with a clear quote.</p></details>
+  </div>
+  <p class="foot">© 2026 Esi Khoshhal · Designed and built by hand</p>
+</section>
+
 <div class="list" id="list">
   <div class="sheet">
     <div class="sheet-head"><h3>All projects</h3><button class="btn ghost" id="closeList" type="button">Close</button></div>
@@ -63,14 +173,13 @@
 
 <div class="live" id="live" aria-hidden="true">
   <iframe id="frame" title="Live site"></iframe>
-  <div class="bar"><button class="btn" id="back" type="button">← Back to the space</button><a class="btn" id="ext" target="_blank" rel="noopener">Open in new tab ↗</a></div>
+  <div class="bar"><button class="btn" id="back" type="button">← Back to the ring</button><a class="btn" id="ext" target="_blank" rel="noopener">Open in new tab ↗</a></div>
 </div>
 
 <div class="loader" id="loader" aria-hidden="true"><div>Esi Khoshhal<small id="ln">000</small></div></div>
 
-<script>window.SPACE_MODE = "ring";</script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
 <script src="../../projects.js"></script>
-<script src="../space/space.js"></script>
+<script src="ring.js"></script>
 </body>
 </html>
