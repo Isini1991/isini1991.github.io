@@ -46,7 +46,7 @@ const camera = new THREE.PerspectiveCamera(62, 1, .1, 900);
 /* ---------- time of day: the sun's height sets every colour ---------- */
 const COLS = ["top", "mid", "low", "hor", "fog", "sand", "hemiS", "hemiG", "sun"];
 const KEYS = [
-  { el: -.3, top: "#050927", mid: "#1b174c", low: "#36296a", hor: "#4a3a7c", fog: "#2a2355", sand: "#5d5cab", hemiS: "#8592ee", hemiG: "#2a1d4a", hemi: .8, sun: "#a9baff", sunI: .5, stars: 1 },
+  { el: -.3, top: "#040a24", mid: "#101b4a", low: "#1c2a62", hor: "#2a3a74", fog: "#1b2452", sand: "#4258bc", hemiS: "#7f92e6", hemiG: "#18204a", hemi: .72, sun: "#b8c6ff", sunI: .42, stars: .8 },
   { el: -.03, top: "#1f2a86", mid: "#7a4aa8", low: "#e0607a", hor: "#ff9070", fog: "#d98585", sand: "#e8a0aa", hemiS: "#ffc0c8", hemiG: "#7a3a6a", hemi: .95, sun: "#ffb08a", sunI: 1, stars: .3 },
   { el: .15, top: "#4550db", mid: "#b878db", low: "#ff8c75", hor: "#ffcca0", fog: "#ffc9a0", sand: "#ffffff", hemiS: "#ffe3d0", hemiG: "#b8607a", hemi: 1.15, sun: "#fff0dc", sunI: 1.6, stars: 0 },
   { el: .55, top: "#2f74ff", mid: "#84bdff", low: "#cbe4ff", hor: "#fff0dc", fog: "#ffe8d2", sand: "#fff4ea", hemiS: "#fff6ec", hemiG: "#d29a7a", hemi: 1.35, sun: "#fffaf0", sunI: 1.9, stars: 0 },
@@ -123,14 +123,14 @@ const wctx = writeCv.getContext("2d");
 const writeTex = new THREE.CanvasTexture(writeCv); writeTex.flipY = false; writeTex.anisotropy = 8;
 const sandMat = new THREE.MeshLambertMaterial({ vertexColors: true });
 const writeAmt = { value: 0 }; // the writing only shows in Services
-const sandDay = { value: 1 };
+const sandDay = { value: 1 }, lampAmt = { value: 0 }, lampPos = { value: Array.from({ length: N }, () => new THREE.Vector2(0, 999)) };
 sandMat.onBeforeCompile = sh => {
   sh.uniforms.uTrail = { value: trailTex }; sh.uniforms.uWrite = { value: writeTex }; sh.uniforms.uWriteAmt = writeAmt;
-  sh.uniforms.uDay = sandDay;
+  sh.uniforms.uDay = sandDay; sh.uniforms.uLampAmt = lampAmt; sh.uniforms.uLamp = lampPos;
   sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec3 vWP;")
     .replace("#include <begin_vertex>", "#include <begin_vertex>\nvWP = (modelMatrix * vec4(position, 1.)).xyz;");
   sh.fragmentShader = sh.fragmentShader.replace("#include <common>", `#include <common>
-      varying vec3 vWP; uniform sampler2D uTrail, uWrite; uniform float uWriteAmt, uDay;
+      varying vec3 vWP; uniform sampler2D uTrail, uWrite; uniform float uWriteAmt, uDay, uLampAmt; uniform vec2 uLamp[${N}];
       float sh1(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
       float sn(vec2 p){ vec2 i = floor(p), f = fract(p); f = f*f*(3.-2.*f);
         return mix(mix(sh1(i), sh1(i+vec2(1,0)), f.x), mix(sh1(i+vec2(0,1)), sh1(i+vec2(1,1)), f.x), f.y); }
@@ -145,7 +145,12 @@ sandMat.onBeforeCompile = sh => {
     .replace("#include <emissivemap_fragment>", `#include <emissivemap_fragment>
       vec2 cell = floor(vWP.xz * 34.); float sr = sh1(cell);
       float glint = step(.9985, sr) * (1. - smoothstep(2., 14., rd)) * max(0., sin(dot(cameraPosition.xz, vec2(2.1, 1.7)) * 1.5 + sr * 400.));
-      totalEmissiveRadiance += vec3(1., .9, .75) * glint * glint * 1.3 * uDay;`)
+      totalEmissiveRadiance += vec3(1., .9, .75) * glint * glint * 1.3 * uDay;
+      if (uLampAmt > .001) {
+        float L = 0.;
+        for (int i = 0; i < ${N}; i++) { vec2 dl = vWP.xz - uLamp[i]; float d2 = dot(dl, dl); L += exp(-d2 * .45) + .25 * exp(-d2 * .08); }
+        totalEmissiveRadiance += vec3(1., .58, .3) * L * uLampAmt * (.1 + diffuseColor.rgb * 1.6);
+      }`)
     .replace("#include <color_fragment>", `#include <color_fragment>
       diffuseColor.rgb *= .95 + .05 * rip(vWP.xz) + .06 * (sn(vWP.xz * .05) - .5);
       vec2 vW = vWP.xz;
@@ -265,7 +270,7 @@ function burn(dt, t) {
   fire.flames.forEach((s, i) => {
     const f = 1 + Math.sin(t * (9 + i * 3)) * .08 + Math.sin(t * (23 + i * 5)) * .05;
     s.scale.set(s.userData.w * f, s.userData.h * (2 - f), 1); s.position.y = .55 + s.userData.h * .25;
-    s.material.opacity = .55 + night * .35;
+    s.material.opacity = i === 2 ? .3 : .55 + night * .2; // the wide outer glow stays soft
   });
   fire.light.intensity = (2.4 + Math.sin(t * 13) * .3 + Math.sin(t * 31) * .2) * (.6 + night * 1.2);
   const P = fire.sparks.geometry.attributes.position;
@@ -348,14 +353,14 @@ function flyBirds(t) {
 }
 // a lantern beside each site; they light up as the sun goes down
 const lanternMat = new THREE.MeshBasicMaterial({ color: new THREE.Color("#ffb46a") });
-const poolMat = new THREE.MeshBasicMaterial({ map: glowTex, color: "#ff9a50", transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: 0 });
+const haloMat = new THREE.SpriteMaterial({ map: glowTex, color: "#ffb070", transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: 0, fog: false });
 const lanterns = Array.from({ length: N }, () => {
   const g = new THREE.Group();
   const pole = new THREE.Mesh(new THREE.CylinderGeometry(.022, .035, 1.6, 6).translate(0, .8, 0), new THREE.MeshStandardMaterial({ color: "#2a2033", roughness: .5, metalness: .5 }));
   const cage = new THREE.Mesh(new THREE.CylinderGeometry(.09, .07, .22, 6).translate(0, 1.7, 0), new THREE.MeshStandardMaterial({ color: "#2a2033", roughness: .5, metalness: .5, wireframe: true }));
   const orb = new THREE.Mesh(new THREE.SphereGeometry(.065, 12, 8).translate(0, 1.7, 0), lanternMat);
-  const pool = new THREE.Mesh(new THREE.PlaneGeometry(3.2, 3.2).rotateX(-Math.PI / 2), poolMat); pool.position.y = .04;
-  pole.castShadow = true; g.add(pole, cage, orb, pool); scene.add(g); return g;
+  const halo = new THREE.Sprite(haloMat); halo.position.y = 1.7; halo.scale.setScalar(.8);
+  pole.castShadow = true; g.add(pole, cage, orb, halo); scene.add(g); return g;
 });
 
 /* ---------- the work ---------- */
@@ -400,7 +405,7 @@ function layout() {
   });
   lanterns.forEach((l, i) => {
     const a = (i + .5) / N * Math.PI * 2, lr = r + (portrait() ? 2.4 : .4), x = Math.sin(a) * lr, z = -Math.cos(a) * lr;
-    l.position.set(x, duneH(x, z) - .05, z);
+    l.position.set(x, duneH(x, z) - .05, z); lampPos.value[i].set(x, z);
   });
 }
 
@@ -450,13 +455,13 @@ const bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), .42, .5, 1);
 composer.addPass(bloom);
 composer.addPass(new OutputPass());
 const finish = new ShaderPass({ // a soft vignette and a little film grain
-  uniforms: { tDiffuse: { value: null }, uTime: { value: 0 } },
+  uniforms: { tDiffuse: { value: null }, uTime: { value: 0 }, uGrain: { value: .03 } },
   vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.); }`,
-  fragmentShader: `uniform sampler2D tDiffuse; uniform float uTime; varying vec2 vUv;
+  fragmentShader: `uniform sampler2D tDiffuse; uniform float uTime, uGrain; varying vec2 vUv;
     float h(vec2 p){ return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
     void main(){ vec4 c = texture2D(tDiffuse, vUv); vec2 q = vUv - .5;
       c.rgb *= 1. - dot(q, q) * .5;
-      c.rgb += (h(vUv * 917.3 + fract(uTime * 7.) * 31.) - .5) * .03;
+      c.rgb += (h(vUv * 917.3 + fract(uTime * 7.) * 31.) - .5) * uGrain;
       gl_FragColor = c; }` });
 composer.addPass(finish);
 
@@ -920,8 +925,12 @@ function tick() {
   dust.rotation.y = t * .01;
   blow(dt, t); burn(dt, t); hear(dt, t); flyBirds(t); tintMountains();
   sandDay.value = 1 - night;
-  lanternMat.color.setRGB(1, .7, .42).multiplyScalar(.5 + sstep(night + (SUN.el < .1 ? .3 : 0), .05, .8) * 5);
-  poolMat.opacity = .08 + night * .55;
+  const lit = sstep(night + (SUN.el < .1 ? .3 : 0), .05, .8);
+  lanternMat.color.setRGB(1, .72, .45).multiplyScalar(.6 + lit * 1.6);
+  haloMat.opacity = lit * .4; lampAmt.value = lit * (.35 + .65 * night); // pools only really show once it is dark
+  // night is quieter: less dust in the air, no birds, softer grain
+  dust.material.opacity = .8 - night * .6; birds.flock.visible = night < .6;
+  finish.uniforms.uGrain.value = .03 - night * .015;
   finish.uniforms.uTime.value = t;
 
   // trails slowly fill back in
@@ -944,7 +953,7 @@ function tick() {
     const dimT = S.open >= 0 && S.open !== i ? .28 : 1;
     f.dim += (dimT - f.dim) * (1 - Math.exp(-dt * 6));
     f.mat.opacity = f.dim; f.back.material.opacity = f.dim;
-    f.glow.material.opacity = (.35 + night * .3 + f.hover * .4 + (S.open === i ? .35 : 0)) * r * f.dim;
+    f.glow.material.opacity = (.35 - night * .25 + f.hover * .3 + (S.open === i ? .3 : 0)) * r * f.dim;
   });
 
   // camera
@@ -969,7 +978,7 @@ function tick() {
 
   // client stars and the lines between them
   camera.getWorldDirection(camFwd);
-  const sv = S.entered ? clamp(night * 1.3 + sstep(G.pitch, .15, .45) + (place === "about" ? 1 : 0), 0, 1) * fl : 0;
+  const sv = S.entered ? clamp(sstep(G.pitch, .15, .45) + (place === "about" ? 1 : 0), 0, 1) * fl : 0;
   let path = "";
   stars.forEach(s => {
     tmpV.copy(s.dir).multiplyScalar(400).add(camera.position).project(camera);
