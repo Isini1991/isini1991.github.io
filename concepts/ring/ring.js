@@ -116,16 +116,17 @@ const writeCv = document.createElement("canvas"); writeCv.width = writeCv.height
 const wctx = writeCv.getContext("2d");
 const writeTex = new THREE.CanvasTexture(writeCv); writeTex.flipY = false; writeTex.anisotropy = 8;
 const sandMat = new THREE.MeshLambertMaterial({ vertexColors: true });
+const writeAmt = { value: 0 }; // the writing only shows in Services
 sandMat.onBeforeCompile = sh => {
-  sh.uniforms.uTrail = { value: trailTex }; sh.uniforms.uWrite = { value: writeTex };
+  sh.uniforms.uTrail = { value: trailTex }; sh.uniforms.uWrite = { value: writeTex }; sh.uniforms.uWriteAmt = writeAmt;
   sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec2 vW;")
     .replace("#include <begin_vertex>", "#include <begin_vertex>\nvW = (modelMatrix * vec4(position, 1.)).xz;");
-  sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec2 vW; uniform sampler2D uTrail, uWrite;")
+  sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec2 vW; uniform sampler2D uTrail, uWrite; uniform float uWriteAmt;")
     .replace("#include <color_fragment>", `#include <color_fragment>
       vec2 tu = vW / ${TW.toFixed(1)} + .5, wu = (vW - vec2(${WX0.toFixed(1)}, ${WZ0.toFixed(1)})) / ${WS.toFixed(1)};
       vec2 g = vec2(0.);
       if (tu.x > 0. && tu.x < 1. && tu.y > 0. && tu.y < 1.) g = max(g, texture2D(uTrail, tu).rg);
-      if (wu.x > 0. && wu.x < 1. && wu.y > 0. && wu.y < 1.) g = max(g, texture2D(uWrite, wu).rg);
+      if (wu.x > 0. && wu.x < 1. && wu.y > 0. && wu.y < 1.) g = max(g, texture2D(uWrite, wu).rg * uWriteAmt);
       diffuseColor.rgb *= 1. - g.r * .4;
       diffuseColor.rgb += g.g * .07 * (1. - g.r);`);
 };
@@ -330,7 +331,7 @@ addEventListener("resize", () => { resize(); if (phone() !== wasPhone) { wasPhon
 
 /* ---------- places: work, about (the sky), services (the sand), contact (the fire) ---------- */
 const HINTS = {
-  work: () => phone() ? "Swipe to turn · Tap a site" : "Drag to turn · Look up for the stars · Click a site",
+  work: () => phone() ? "Swipe or use the arrows · Tap a site" : "Drag or use the arrows · Click a site to open it",
   about: () => "Every star is someone I built for. Click one.",
   services: () => phone() ? "Draw in the sand with your finger" : "Draw in the sand with your mouse",
   contact: () => "Sit by the fire and say hello",
@@ -345,6 +346,7 @@ function setPlace(p) {
   if (p === "about") { G.tpitch = phone() ? .02 : .8; G.tfov = phone() ? 88 : baseFov(); } // on phones the sheet covers the lower half, so the stars sit high
   document.querySelectorAll("[data-go]").forEach(b => b.classList.toggle("on", b.dataset.go === p));
   $("hint").textContent = HINTS[p]();
+  $("where").textContent = p[0].toUpperCase() + p.slice(1);
   document.body.classList.remove("menu-open");
   try { history.replaceState(null, "", p === "work" ? location.pathname : "#" + p); } catch (_) {}
 }
@@ -370,7 +372,7 @@ $("home").addEventListener("click", e => { e.preventDefault(); setPlace("work");
 
 /* ---------- pointer: turn the ring, drag the sun, draw in the sand ---------- */
 const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
-let drag = null, sunDrag = null, hoverI = -1, pinch = null, lastSand = null, lastMove = null;
+let lastWheel = 0, drag = null, sunDrag = null, hoverI = -1, pinch = null, lastSand = null, lastMove = null;
 const pointers = new Map();
 const tip = $("tip");
 function aim(x, y) { ndc.set(x / innerWidth * 2 - 1, -(y / innerHeight) * 2 + 1); ray.setFromCamera(ndc, camera); }
@@ -484,7 +486,7 @@ canvas.addEventListener("pointerup", endPointer); canvas.addEventListener("point
 canvas.addEventListener("pointerleave", () => { tip.classList.remove("on"); document.body.classList.remove("point", "sunny"); hoverI = -1; hoverAt = null; lastSand = null; });
 addEventListener("wheel", e => {
   if (!S.entered || overUI(e) || !ringPlace()) return;
-  G.tyaw += (Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY) * .0016;
+  G.tyaw += (Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY) * .0016; lastWheel = performance.now();
   if (S.open >= 0) closePanel(true);
 }, { passive: true });
 addEventListener("keydown", e => {
@@ -516,7 +518,7 @@ function placeSun() {
   SUN.on = S.entered && front && ringPlace() && S.open < 0 && SUN.x > 0 && SUN.x < innerWidth && SUN.y > 60 && SUN.y < innerHeight - 60 && d.y > -.02 ? 1 : 0;
   sunTag.classList.toggle("on", !!SUN.on && !SUN.touched && G.fly >= 1);
   sunTag.textContent = d === moonDir ? "Drag the moon" : "Drag the sun";
-  sunTag.style.transform = `translate(${SUN.x}px, ${SUN.y + 44}px) translateX(-50%)`;
+  sunTag.style.transform = `translate(${SUN.x}px, ${SUN.y - 72}px) translateX(-50%)`;
   if (!sunDrag && document.activeElement !== timeIn) timeIn.value = Math.round(SUN.tel * 100);
 }
 
@@ -545,8 +547,9 @@ function openPanel(i) {
 }
 function closePanel(keepView) {
   if (S.open < 0) return;
+  const a = frames[S.open].angle;
   S.open = -1; document.body.classList.remove("open");
-  if (!keepView) { G.tfov = baseFov(); G.tpitch = 0; }
+  if (!keepView) { G.tfov = baseFov(); G.tpitch = 0; G.tyaw = G.yaw + Math.atan2(Math.sin(a - G.yaw), Math.cos(a - G.yaw)); } // come back to the site, not its neighbour
 }
 $("pClose").onclick = () => closePanel();
 $("pPrev").onclick = () => openPanel((S.open - 1 + N) % N);
@@ -560,12 +563,34 @@ function closeLive() { if (!$("live").classList.contains("open")) return; $("liv
 $("back").onclick = closeLive;
 
 /* list of all work */
-$("listItems").innerHTML = items.map((it, i) => `<li><button data-i="${i}"><span>${pad(i + 1)}</span><b>${esc(it.p.title)}</b></button></li>`).join("");
+$("listItems").innerHTML = items.map((it, i) => `<li><button data-i="${i}"><img src="${it.src}" alt="" loading="lazy"><span>${pad(i + 1)}</span><b>${esc(it.p.title)}</b><small>${esc(it.p.client)}</small></button></li>`).join("");
 $("listItems").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; document.body.classList.remove("listing"); const was = S.entered; enter(); setTimeout(() => openPanel(+b.dataset.i), was ? 0 : 900); });
 $("openList").onclick = () => document.body.classList.add("listing");
 $("closeList").onclick = () => document.body.classList.remove("listing");
 $("list").addEventListener("click", e => { if (e.target === $("list")) document.body.classList.remove("listing"); });
-document.querySelectorAll(".place-sheet .x").forEach(b => (b.onclick = () => setPlace("work")));
+document.querySelectorAll(".place-sheet .back").forEach(b => (b.onclick = () => setPlace("work")));
+
+/* ---------- the site in the middle: its name, a counter and arrows ---------- */
+const STEP = Math.PI * 2 / N;
+const cap = $("focus"), capNum = $("fNum"), capTitle = $("fTitle"), capClient = $("fClient");
+let capI = -1;
+const curIndex = () => ((Math.round(G.yaw / STEP) % N) + N) % N;
+function step(d) { if (S.open >= 0) return openPanel((S.open + d + N) % N); G.vyaw = 0; G.tyaw = (Math.round(G.tyaw / STEP) + d) * STEP; }
+$("prevW").onclick = () => step(-1);
+$("nextW").onclick = () => step(1);
+$("fOpen").onclick = () => openPanel(curIndex());
+const capV = new THREE.Vector3();
+function caption() {
+  const i = curIndex(), f = frames[i];
+  if (i !== capI) { capI = i; capNum.textContent = `${pad(i + 1)} / ${pad(N)}`; capTitle.textContent = items[i].p.title; capClient.textContent = items[i].p.client; }
+  const settled = Math.abs(G.yaw - Math.round(G.yaw / STEP) * STEP) < .12;
+  const show = S.entered && G.fly >= 1 && place === "work" && S.open < 0 && Math.abs(G.pitch) < .3 && f.rise >= 1;
+  document.body.classList.toggle("ringing", show);
+  cap.classList.toggle("on", show && settled && !drag);
+  if (!show) return;
+  capV.set(0, -FH / 2, 0).applyMatrix4(f.face.matrixWorld).project(camera);
+  cap.style.transform = `translate(${((capV.x + 1) / 2 * innerWidth).toFixed(1)}px, ${((1 - capV.y) / 2 * innerHeight + 18).toFixed(1)}px) translateX(-50%)`;
+}
 
 /* ---------- the site you face plays live inside its frame ---------- */
 // a CSS matrix3d that pins a 1280 x 800 iframe onto the frame's four corners on screen
@@ -737,11 +762,13 @@ function tick() {
   const fl = reduce ? (S.entered ? 1 : 0) : ease(G.fly);
   if (!drag) {
     G.tyaw += G.vyaw; G.vyaw *= .92;
-    if (place === "work" && S.open < 0 && S.entered && G.fly >= 1 && Math.abs(G.vyaw) < 1e-4) G.tyaw += dt * .03;
+    // in Work the ring always comes to rest on one site
+    if (place === "work" && S.open < 0 && S.entered && Math.abs(G.vyaw) < .002 && now - lastWheel > 240) { G.vyaw = 0; G.tyaw = Math.round(G.tyaw / STEP) * STEP; }
     if (place === "about" && S.entered) G.tyaw += dt * .02;
   }
   G.yaw += (G.tyaw - G.yaw) * k; G.fov += (G.tfov - G.fov) * k; G.pitch += (G.tpitch - G.pitch) * k;
   targetPose(fl);
+  writeAmt.value += ((place === "services" ? 1 : 0) - writeAmt.value) * (1 - Math.exp(-dt * 2));
   if (travel && !reduce) {
     const kt = 1 - Math.exp(-dt * 2.6);
     CAM.pos.lerp(TP, kt); CAM.look.lerp(TL, kt); CAM.fov += (TF - CAM.fov) * kt;
@@ -752,7 +779,7 @@ function tick() {
 
   // client stars and the lines between them
   camera.getWorldDirection(camFwd);
-  const sv = S.entered ? clamp(.3 + night * .7 + (place === "about" ? .6 : 0), 0, 1) * fl : 0;
+  const sv = S.entered ? clamp(night * 1.3 + sstep(G.pitch, .15, .45) + (place === "about" ? 1 : 0), 0, 1) * fl : 0;
   let path = "";
   stars.forEach(s => {
     tmpV.copy(s.dir).multiplyScalar(400).add(camera.position).project(camera);
@@ -772,6 +799,7 @@ function tick() {
   renderer.render(scene, camera);
   placeSun();
   liveSite(now);
+  caption();
   requestAnimationFrame(tick);
 }
 

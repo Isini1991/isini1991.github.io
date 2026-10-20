@@ -3,7 +3,44 @@
 .nav .btn.light.on { background:var(--klein); color:#fff; }
 .snd svg { width:16px; height:16px; }
 .snd[aria-pressed="false"] svg path:last-child { opacity:.35; }
-.menuBtn { display:none; }
+.phoneNav { display:none; gap:8px; }
+.brand { display:flex; align-items:baseline; gap:12px; }
+.where { font-size:13px; letter-spacing:.06em; text-transform:uppercase; padding-left:12px; border-left:1px solid rgba(255,255,255,.5); text-shadow:0 1px 14px rgba(120,40,40,.3);
+  opacity:0; transition:opacity .5s; }
+body.entered .where { opacity:.95; }
+
+/* the site in the middle: its name and a way in */
+.focus { position:fixed; left:0; top:0; z-index:4; display:grid; justify-items:center; gap:2px; text-align:center; pointer-events:none;
+  opacity:0; transition:opacity .35s; color:#fff; text-shadow:0 1px 16px rgba(80,20,40,.45); }
+.focus.on { opacity:1; pointer-events:auto; }
+.focus .fnum { font-size:11px; letter-spacing:.14em; opacity:.85; font-variant-numeric:tabular-nums; }
+.focus b { font-size:22px; font-weight:600; letter-spacing:-.015em; }
+.focus small { font-size:13px; opacity:.9; margin-bottom:10px; }
+.focus .btn { height:38px; font-size:13px; padding:0 18px; text-shadow:none; }
+.arrow { position:fixed; top:50%; z-index:5; width:52px; height:52px; margin-top:-26px; border-radius:50%; display:grid; place-items:center;
+  font-size:30px; line-height:1; color:#fff; background:rgba(28,22,48,.32); border:1px solid rgba(255,255,255,.5);
+  backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); opacity:0; pointer-events:none; transition:opacity .4s, background .2s; }
+.arrow:hover { background:rgba(28,22,48,.5); }
+.arrow.l { left:22px; } .arrow.r { right:22px; }
+body.ringing .arrow { opacity:1; pointer-events:auto; }
+
+/* back to the ring, at the top of every section */
+.place-sheet .back { display:inline-flex; align-items:center; height:34px; padding:0 14px; margin:-6px 0 18px -4px; border-radius:99px; font-size:13px; color:var(--ink);
+  background:rgba(28,22,48,.06); }
+.place-sheet .back:hover { background:rgba(58,76,255,.12); color:var(--klein); }
+
+/* all projects as a picture grid */
+.list .sheet { width:min(1080px, calc(100vw - 32px)); max-height:86vh; padding:24px 28px 28px; }
+.list ol { columns:auto; display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:22px 18px; margin-top:14px; }
+.list li { border:0; }
+.list li button { display:grid; grid-template-columns:auto 1fr; column-gap:8px; row-gap:2px; padding:0; text-align:left; align-items:baseline; }
+.list li img { grid-column:1 / -1; width:100%; aspect-ratio:16 / 10; object-fit:cover; object-position:top; border-radius:12px; margin-bottom:8px;
+  box-shadow:0 8px 24px rgba(60,20,40,.16); transition:transform .3s, box-shadow .3s; background:rgba(28,22,48,.08); }
+.list li button:hover img { transform:translateY(-3px); box-shadow:0 14px 30px rgba(60,20,40,.22); }
+.list li span { width:auto; }
+.list li b { font-size:15px; }
+.list li small { grid-column:2; font-size:12px; color:var(--dim); }
+#openList svg { margin-right:-2px; }
 
 /* the site you face, live */
 .livewin { position:fixed; left:0; top:0; width:1280px; height:800px; transform-origin:0 0; z-index:2; pointer-events:none; border-radius:48px; overflow:hidden;
@@ -32,7 +69,7 @@
 /* the sun's handle */
 .sunTag { position:fixed; left:0; top:0; z-index:4; pointer-events:none; font-size:12px; padding:7px 12px; border-radius:99px; background:rgba(255,250,245,.92);
   color:var(--ink); box-shadow:0 8px 24px rgba(80,20,40,.18); opacity:0; transition:opacity .5s; white-space:nowrap; }
-.sunTag::before { content:""; position:absolute; left:50%; top:-4px; width:8px; height:8px; margin-left:-4px; background:inherit; transform:rotate(45deg); }
+.sunTag::before { content:""; position:absolute; left:50%; bottom:-4px; width:8px; height:8px; margin-left:-4px; background:inherit; transform:rotate(45deg); }
 .sunTag.on { opacity:1; animation:nudge 2.4s ease-in-out infinite; }
 @keyframes nudge { 50% { margin-top:-5px; } }
 body.sunny { cursor:grab; }
@@ -122,7 +159,15 @@ body.menu-open .menu { opacity:1; visibility:visible; transform:none; transition
 
 @media (max-width:760px) {
   .nav { display:none; }
-  .menuBtn { display:inline-flex; height:38px; font-size:13px; }
+  .phoneNav { display:flex; }
+  .phoneNav .btn { height:38px; font-size:13px; padding:0 14px; }
+  .where { font-size:11px; padding-left:10px; }
+  .arrow { width:42px; height:42px; margin-top:-21px; font-size:26px; }
+  .arrow.l { left:12px; } .arrow.r { right:12px; }
+  .focus b { font-size:19px; }
+  .list ol { grid-template-columns:1fr 1fr; gap:16px 12px; }
+  .list .sheet { padding:18px 16px 20px; }
+  .list li b { font-size:13px; } .list li small { display:none; }
   .hint { bottom:calc(76px + env(safe-area-inset-bottom)); }
   .dock { padding:0 12px; }
   .time { padding:0 12px; gap:8px; }
