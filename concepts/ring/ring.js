@@ -1,5 +1,10 @@
+import * as THREE from "three";
+import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
+import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
+import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
+import { ShaderPass } from "three/addons/postprocessing/ShaderPass.js";
+import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
 (() => {
-const THREE = window.THREE;
 const IMG = "../journey/img/";
 // Work in the ring, in order. Titles must match projects.js.
 const PICK = [
@@ -32,7 +37,8 @@ const N = items.length;
 /* ---------- renderer ---------- */
 const canvas = $("space");
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: "high-performance" });
-renderer.setPixelRatio(Math.min(devicePixelRatio || 1, phone() ? 1.6 : 1.75));
+renderer.setPixelRatio(Math.min(devicePixelRatio || 1, phone() ? 1.5 : 1.75));
+renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 const scene = new THREE.Scene();
 scene.fog = new THREE.Fog("#ffc9a0", 26, 150);
 const camera = new THREE.PerspectiveCamera(62, 1, .1, 900);
@@ -79,7 +85,7 @@ const sky = new THREE.Mesh(new THREE.SphereGeometry(500, 48, 24), new THREE.Shad
       c = mix(c, uMid, smoothstep(.1, .3, y));
       c = mix(c, uTop, smoothstep(.28, .75, y));
       float s = max(dot(d, uSun), 0.), up = smoothstep(-.1, .02, uSun.y);
-      c += uSunCol * (pow(s, 900.) * 1.6 * up + pow(s, 60.) * .45 * up + pow(s, 6.) * .2 * (.25 + .75 * up));
+      c += uSunCol * (pow(s, 1400.) * 1.5 * up + pow(s, 90.) * .3 * up + pow(s, 6.) * .2 * (.25 + .75 * up));
       // the moon, opposite the sun
       float m = max(dot(d, uMoon), 0.);
       c += vec3(.95, .96, 1.) * (smoothstep(.99955, .9997, m) * 1.1 + pow(m, 90.) * .22) * uNight;
@@ -88,7 +94,7 @@ const sky = new THREE.Mesh(new THREE.SphereGeometry(500, 48, 24), new THREE.Shad
         vec3 p = d * 260., ci = floor(p); float r = h3(ci);
         if (r > .992) {
           float b = smoothstep(.5, 0., length(fract(p) - .5)) * (.55 + .45 * sin(uTime * (1.2 + r * 40.) + r * 90.));
-          c += vec3(1., .95, .9) * b * uStars * smoothstep(0., .12, y) * (.3 + (r - .992) / .008);
+          c += vec3(1., .95, .9) * b * uStars * smoothstep(0., .12, y) * (.3 + (r - .992) / .008) * 1.6;
         }
       }
       // long soft clouds
@@ -96,7 +102,7 @@ const sky = new THREE.Mesh(new THREE.SphereGeometry(500, 48, 24), new THREE.Shad
       float cl = n(vec2(az * 19. + uTime * .01, y * 22.), 19.) * n(vec2(az * 38. - uTime * .015, y * 37.4), 38.);
       cl = smoothstep(.25, .6, cl) * smoothstep(.05, .2, y) * (1. - smoothstep(.35, .55, y));
       c = mix(c, mix(vec3(1., .9, .86), uMid * 1.15, uNight * .85), cl * .35);
-      gl_FragColor = vec4(c, 1.);
+      gl_FragColor = vec4(pow(max(c, 0.), vec3(2.2)), 1.);
     }`
 }));
 scene.add(sky);
@@ -117,12 +123,32 @@ const wctx = writeCv.getContext("2d");
 const writeTex = new THREE.CanvasTexture(writeCv); writeTex.flipY = false; writeTex.anisotropy = 8;
 const sandMat = new THREE.MeshLambertMaterial({ vertexColors: true });
 const writeAmt = { value: 0 }; // the writing only shows in Services
+const sandDay = { value: 1 };
 sandMat.onBeforeCompile = sh => {
   sh.uniforms.uTrail = { value: trailTex }; sh.uniforms.uWrite = { value: writeTex }; sh.uniforms.uWriteAmt = writeAmt;
-  sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec2 vW;")
-    .replace("#include <begin_vertex>", "#include <begin_vertex>\nvW = (modelMatrix * vec4(position, 1.)).xz;");
-  sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec2 vW; uniform sampler2D uTrail, uWrite; uniform float uWriteAmt;")
+  sh.uniforms.uDay = sandDay;
+  sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nvarying vec3 vWP;")
+    .replace("#include <begin_vertex>", "#include <begin_vertex>\nvWP = (modelMatrix * vec4(position, 1.)).xyz;");
+  sh.fragmentShader = sh.fragmentShader.replace("#include <common>", `#include <common>
+      varying vec3 vWP; uniform sampler2D uTrail, uWrite; uniform float uWriteAmt, uDay;
+      float sh1(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+      float sn(vec2 p){ vec2 i = floor(p), f = fract(p); f = f*f*(3.-2.*f);
+        return mix(mix(sh1(i), sh1(i+vec2(1,0)), f.x), mix(sh1(i+vec2(0,1)), sh1(i+vec2(1,1)), f.x), f.y); }
+      // wind ripples: long wavy ridges across the sand
+      float rip(vec2 p){ float u = p.x * .8 + p.y * .45 + 1.6 * sn(p * .12) + .5 * sin(p.y * .21); return sin(u * 5.2) * (.5 + .5 * sn(p * .35)); }`)
+    .replace("#include <normal_fragment_maps>", `#include <normal_fragment_maps>
+      float rd = length(vWP - cameraPosition), ra = .11 * (1. - smoothstep(12., 48., rd));
+      if (ra > .001) {
+        float h0 = rip(vWP.xz), hx = rip(vWP.xz + vec2(.04, 0.)), hz = rip(vWP.xz + vec2(0., .04));
+        normal = normalize(normal + (viewMatrix * vec4(-(hx - h0) / .04 * ra, 0., -(hz - h0) / .04 * ra, 0.)).xyz);
+      }`)
+    .replace("#include <emissivemap_fragment>", `#include <emissivemap_fragment>
+      vec2 cell = floor(vWP.xz * 34.); float sr = sh1(cell);
+      float glint = step(.9985, sr) * (1. - smoothstep(2., 14., rd)) * max(0., sin(dot(cameraPosition.xz, vec2(2.1, 1.7)) * 1.5 + sr * 400.));
+      totalEmissiveRadiance += vec3(1., .9, .75) * glint * glint * 1.3 * uDay;`)
     .replace("#include <color_fragment>", `#include <color_fragment>
+      diffuseColor.rgb *= .95 + .05 * rip(vWP.xz) + .06 * (sn(vWP.xz * .05) - .5);
+      vec2 vW = vWP.xz;
       vec2 tu = vW / ${TW.toFixed(1)} + .5, wu = (vW - vec2(${WX0.toFixed(1)}, ${WZ0.toFixed(1)})) / ${WS.toFixed(1)};
       vec2 g = vec2(0.);
       if (tu.x > 0. && tu.x < 1. && tu.y > 0. && tu.y < 1.) g = max(g, texture2D(uTrail, tu).rg);
@@ -143,10 +169,15 @@ sandMat.onBeforeCompile = sh => {
   }
   g.setAttribute("color", new THREE.BufferAttribute(cols, 3));
   g.computeVertexNormals();
-  scene.add(new THREE.Mesh(g, sandMat));
+  const sand = new THREE.Mesh(g, sandMat); sand.receiveShadow = true; sand.castShadow = true;
+  scene.add(sand);
 }
 const hemi = new THREE.HemisphereLight("#ffe3d0", "#b8607a", 1.15); scene.add(hemi);
 const sunLight = new THREE.DirectionalLight("#fff0dc", 1.6); scene.add(sunLight);
+sunLight.castShadow = true;
+sunLight.shadow.mapSize.set(phone() ? 1024 : 2048, phone() ? 1024 : 2048);
+Object.assign(sunLight.shadow.camera, { left: -34, right: 34, top: 34, bottom: -34, near: 1, far: 170 });
+sunLight.shadow.bias = -.0004; sunLight.shadow.normalBias = .05;
 
 // the services, written in the sand in front of the centre
 const WRITE = ["Art direction", "Web design", "Creative code", "Shops for makers", "Archives & CMS"];
@@ -226,6 +257,7 @@ const fire = (() => {
   grp.add(sparks);
   const light = new THREE.PointLight("#ff9a4a", 3, 16, 1.6); light.position.y = 1; grp.add(light);
   const hit = new THREE.Mesh(new THREE.SphereGeometry(1.4, 8, 6), new THREE.MeshBasicMaterial({ visible: false })); hit.position.y = .8; hit.userData.fire = 1; grp.add(hit);
+  grp.traverse(o => { if (o.isMesh && o !== hit) { o.castShadow = true; o.receiveShadow = true; } });
   scene.add(grp);
   return { grp, flames, sparks, life, light, hit };
 })();
@@ -246,6 +278,86 @@ function burn(dt, t) {
   P.needsUpdate = true;
 }
 
+/* ---------- the land around: far mountains, rocks, dry grass, birds ---------- */
+// whole-number frequencies only, so the range closes up seamlessly all the way round
+const ridge = (a, seed) => { let v = 0, amp = 1; for (let o = 0, f = 3; o < 5; o++, f *= 2) { v += amp * Math.abs(Math.sin(a * f + seed * (o + 1) * 1.7 + Math.sin(a * (f / 3 + 1) + seed) * 1.2)); amp *= .5; } return v / 1.9; };
+const mountains = [[230, 22, 1.3, .55], [320, 38, 4.1, .3]].map(([r, h, seed, mixv]) => {
+  const n = 360, pos = new Float32Array((n + 1) * 6), tt = new Float32Array((n + 1) * 2), idx = [];
+  for (let i = 0; i <= n; i++) {
+    const a = i / n * Math.PI * 2, x = Math.sin(a) * r, z = -Math.cos(a) * r, top = -4 + h * (.25 + .75 * ridge(a, seed));
+    pos.set([x, -8, z, x, top, z], i * 6); tt.set([0, 1], i * 2);
+    if (i < n) { const k = i * 2; idx.push(k, k + 1, k + 2, k + 1, k + 3, k + 2); }
+  }
+  const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.BufferAttribute(pos, 3)); g.setAttribute("t", new THREE.BufferAttribute(tt, 1)); g.setIndex(idx);
+  const m = new THREE.Mesh(g, new THREE.ShaderMaterial({ side: THREE.DoubleSide, fog: false, uniforms: { uTop: { value: new THREE.Color() }, uBot: { value: new THREE.Color() } }, // uBot is the fog colour, so the foot melts into the haze
+    vertexShader: `attribute float t; varying float vT; void main(){ vT = t; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.); }`,
+    fragmentShader: `uniform vec3 uTop, uBot; varying float vT; void main(){ gl_FragColor = vec4(mix(uBot, pow(uTop, vec3(2.2)), smoothstep(.0, .55, vT)), 1.); }` }));
+  m.userData.mix = mixv; m.renderOrder = -1; scene.add(m); return m;
+});
+const tintMountains = () => mountains.forEach(m => {
+  const k = m.userData.mix; // the far range melts into the sky, the near one is darker
+  m.material.uniforms.uTop.value.copy(SKY.hor).lerp(SKY.mid, .55 - k * .5).multiplyScalar(1 - k * .35);
+  m.material.uniforms.uBot.value.copy(SKY.fog);
+});
+const rnd = (() => { let s = 7; return () => (s = (s * 16807) % 2147483647) / 2147483647; })();
+{
+  const rockMat = new THREE.MeshStandardMaterial({ color: "#b0705f", roughness: .95, flatShading: true });
+  for (let c = 0; c < 46; c++) {
+    const a = rnd() * Math.PI * 2, r = 17 + Math.pow(rnd(), 1.6) * 95, cx = Math.sin(a) * r, cz = -Math.cos(a) * r;
+    if (Math.hypot(cx - 7.5, cz - 24) < 6) continue; // keep the campfire clear
+    const n = 1 + Math.floor(rnd() * 3);
+    for (let k = 0; k < n; k++) {
+      const g = new THREE.IcosahedronGeometry(1, 1), P = g.attributes.position;
+      for (let i = 0; i < P.count; i++) { const f = .75 + rnd() * .45; P.setXYZ(i, P.getX(i) * f, P.getY(i) * f, P.getZ(i) * f); }
+      g.computeVertexNormals();
+      const m = new THREE.Mesh(g, rockMat), sc = (.35 + rnd() * 1.5) * (k ? .6 : 1);
+      const x = cx + (rnd() - .5) * 2.4, z = cz + (rnd() - .5) * 2.4;
+      m.scale.set(sc * (1 + rnd() * .6), sc * (.45 + rnd() * .4), sc); m.rotation.set(rnd(), rnd() * 6, rnd() * .4);
+      m.position.set(x, duneH(x, z) - sc * .15, z); m.castShadow = m.receiveShadow = true; scene.add(m);
+    }
+  }
+  const blades = phone() ? 700 : 1400, grass = new THREE.InstancedMesh(new THREE.ConeGeometry(.022, .7, 3).translate(0, .35, 0), new THREE.MeshLambertMaterial({ color: "#9a6a45" }), blades);
+  const o = new THREE.Object3D(); let b = 0;
+  while (b < blades) {
+    const a = rnd() * Math.PI * 2, r = 15 + Math.pow(rnd(), 1.4) * 70, cx = Math.sin(a) * r, cz = -Math.cos(a) * r;
+    for (let k = 0; k < 9 && b < blades; k++, b++) {
+      const x = cx + (rnd() - .5) * .5, z = cz + (rnd() - .5) * .5;
+      o.position.set(x, duneH(x, z) - .05, z); o.rotation.set((rnd() - .5) * .9, rnd() * 6, (rnd() - .5) * .9); o.scale.setScalar(.5 + rnd() * .9);
+      o.updateMatrix(); grass.setMatrixAt(b, o.matrix);
+    }
+  }
+  grass.castShadow = true; grass.receiveShadow = true; scene.add(grass);
+}
+const birds = (() => {
+  const mat = new THREE.MeshBasicMaterial({ color: "#3a2440", side: THREE.DoubleSide }), list = [];
+  const wing = s => { const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.BufferAttribute(new Float32Array([0, 0, .12, s * .75, 0, .02, 0, 0, -.18, s * .75, 0, .02, s * .3, 0, -.12, 0, 0, -.18]), 3)); return g; };
+  const flock = new THREE.Group();
+  for (let i = 0; i < 7; i++) {
+    const b = new THREE.Group(), l = new THREE.Mesh(wing(-1), mat), r = new THREE.Mesh(wing(1), mat);
+    b.add(l, r); const row = Math.ceil(i / 2), side = i % 2 ? 1 : -1;
+    b.position.set(side * row * 1.1, Math.sin(i) * .4, row * 1.3); b.scale.setScalar(1.2);
+    b.userData = { l, r, ph: i * .7 }; flock.add(b); list.push(b);
+  }
+  scene.add(flock); return { flock, list };
+})();
+function flyBirds(t) {
+  const a = t * .035, r = 70;
+  birds.flock.position.set(Math.sin(a) * r, 26 + Math.sin(t * .2) * 2, -Math.cos(a) * r - 20);
+  birds.flock.rotation.y = -a - Math.PI / 2;
+  birds.list.forEach(b => { const w = Math.sin(t * 7 + b.userData.ph) * .7; b.userData.l.rotation.z = w; b.userData.r.rotation.z = -w; });
+}
+// a lantern beside each site; they light up as the sun goes down
+const lanternMat = new THREE.MeshBasicMaterial({ color: new THREE.Color("#ffb46a") });
+const poolMat = new THREE.MeshBasicMaterial({ map: glowTex, color: "#ff9a50", transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: 0 });
+const lanterns = Array.from({ length: N }, () => {
+  const g = new THREE.Group();
+  const pole = new THREE.Mesh(new THREE.CylinderGeometry(.022, .035, 1.6, 6).translate(0, .8, 0), new THREE.MeshStandardMaterial({ color: "#2a2033", roughness: .5, metalness: .5 }));
+  const cage = new THREE.Mesh(new THREE.CylinderGeometry(.09, .07, .22, 6).translate(0, 1.7, 0), new THREE.MeshStandardMaterial({ color: "#2a2033", roughness: .5, metalness: .5, wireframe: true }));
+  const orb = new THREE.Mesh(new THREE.SphereGeometry(.065, 12, 8).translate(0, 1.7, 0), lanternMat);
+  const pool = new THREE.Mesh(new THREE.PlaneGeometry(3.2, 3.2).rotateX(-Math.PI / 2), poolMat); pool.position.y = .04;
+  pole.castShadow = true; g.add(pole, cage, orb, pool); scene.add(g); return g;
+});
+
 /* ---------- the work ---------- */
 const FW = 3.4, FH = FW / 1.6;
 const roundTex = (() => { // rounded corners as an alpha map
@@ -254,6 +366,14 @@ const roundTex = (() => { // rounded corners as an alpha map
   x.beginPath(); x.roundRect(2, 2, 316, 196, 12); x.fill();
   return new THREE.CanvasTexture(c);
 })();
+const bodyGeo = (() => { // a slim rounded slab behind each screen
+  const w = FW + .1, h = FH + .1, r = .14, sh = new THREE.Shape();
+  sh.moveTo(-w / 2 + r, -h / 2); sh.lineTo(w / 2 - r, -h / 2); sh.quadraticCurveTo(w / 2, -h / 2, w / 2, -h / 2 + r);
+  sh.lineTo(w / 2, h / 2 - r); sh.quadraticCurveTo(w / 2, h / 2, w / 2 - r, h / 2); sh.lineTo(-w / 2 + r, h / 2);
+  sh.quadraticCurveTo(-w / 2, h / 2, -w / 2, h / 2 - r); sh.lineTo(-w / 2, -h / 2 + r); sh.quadraticCurveTo(-w / 2, -h / 2, -w / 2 + r, -h / 2);
+  const g = new THREE.ExtrudeGeometry(sh, { depth: .07, bevelEnabled: true, bevelThickness: .018, bevelSize: .018, bevelSegments: 3, curveSegments: 8 });
+  g.center(); return g;
+})();
 const frames = [], hitMeshes = [];
 const loader = new THREE.TextureLoader();
 items.forEach((it, i) => {
@@ -261,7 +381,8 @@ items.forEach((it, i) => {
   const mat = new THREE.MeshBasicMaterial({ color: "#ffffff", alphaMap: roundTex, transparent: true, fog: false });
   const face = new THREE.Mesh(new THREE.PlaneGeometry(FW, FH), mat);
   face.userData.i = i; face.renderOrder = 2;
-  const back = new THREE.Mesh(new THREE.PlaneGeometry(FW, FH), new THREE.MeshBasicMaterial({ color: "#ffe2cf", alphaMap: roundTex, transparent: true, side: THREE.BackSide }));
+  const back = new THREE.Mesh(bodyGeo, new THREE.MeshStandardMaterial({ color: "#2a2033", roughness: .42, metalness: .55, transparent: true }));
+  back.position.z = -.062; back.castShadow = true; // its front sits just behind the screen
   const glow = new THREE.Mesh(new THREE.PlaneGeometry(FW * 1.9, FH * 2.1), new THREE.MeshBasicMaterial({ map: glowTex, color: "#ffffff", transparent: true, opacity: .55, depthWrite: false, blending: THREE.AdditiveBlending, fog: false }));
   glow.position.z = -.05; glow.renderOrder = 1;
   grp.add(glow, back, face);
@@ -276,6 +397,10 @@ function layout() {
   frames.forEach((f, i) => {
     f.angle = i / N * Math.PI * 2;
     f.base.set(Math.sin(f.angle) * r, 3.3 + Math.sin(f.seed * 4.1) * .18, -Math.cos(f.angle) * r);
+  });
+  lanterns.forEach((l, i) => {
+    const a = (i + .5) / N * Math.PI * 2, lr = r + (portrait() ? 2.4 : .4), x = Math.sin(a) * lr, z = -Math.cos(a) * lr;
+    l.position.set(x, duneH(x, z) - .05, z);
   });
 }
 
@@ -319,8 +444,24 @@ function targetPose(fl) {
   TF = lerp(48, G.fov, fl);
 }
 
+const composer = new EffectComposer(renderer, new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples: phone() ? 2 : 4 }));
+composer.addPass(new RenderPass(scene, camera));
+const bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), .42, .5, 1);
+composer.addPass(bloom);
+composer.addPass(new OutputPass());
+const finish = new ShaderPass({ // a soft vignette and a little film grain
+  uniforms: { tDiffuse: { value: null }, uTime: { value: 0 } },
+  vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.); }`,
+  fragmentShader: `uniform sampler2D tDiffuse; uniform float uTime; varying vec2 vUv;
+    float h(vec2 p){ return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
+    void main(){ vec4 c = texture2D(tDiffuse, vUv); vec2 q = vUv - .5;
+      c.rgb *= 1. - dot(q, q) * .5;
+      c.rgb += (h(vUv * 917.3 + fract(uTime * 7.) * 31.) - .5) * .03;
+      gl_FragColor = c; }` });
+composer.addPass(finish);
 function resize() {
   renderer.setSize(innerWidth, innerHeight, false);
+  composer.setPixelRatio(renderer.getPixelRatio()); composer.setSize(innerWidth, innerHeight);
   camera.aspect = innerWidth / innerHeight;
   camera.updateProjectionMatrix();
   layout();
@@ -729,10 +870,14 @@ function tick() {
   scene.fog.color.copy(SKY.fog); sandMat.color.copy(SKY.sand);
   hemi.color.copy(SKY.hemiS); hemi.groundColor.copy(SKY.hemiG); hemi.intensity = SKY.hemi;
   lightDir.copy(sunDir).lerp(moonDir, night).normalize();
-  sunLight.position.copy(lightDir).multiplyScalar(50); sunLight.color.copy(SKY.sun); sunLight.intensity = SKY.sunI;
+  sunLight.position.copy(lightDir).multiplyScalar(80); sunLight.color.copy(SKY.sun); sunLight.intensity = SKY.sunI;
   dust.material.color.setRGB(1, lerp(.96, .9, night), lerp(.92, 1, night));
   dust.rotation.y = t * .01;
-  blow(dt, t); burn(dt, t); hear(dt, t);
+  blow(dt, t); burn(dt, t); hear(dt, t); flyBirds(t); tintMountains();
+  sandDay.value = 1 - night;
+  lanternMat.color.setRGB(1, .7, .42).multiplyScalar(.5 + sstep(night + (SUN.el < .1 ? .3 : 0), .05, .8) * 5);
+  poolMat.opacity = .08 + night * .55;
+  finish.uniforms.uTime.value = t;
 
   // trails slowly fill back in
   if (now - trailLive < 25000 && now - lastTrailFade > 60) {
@@ -796,7 +941,7 @@ function tick() {
   starPath.setAttribute("d", path); starPath.style.opacity = sv * .8;
 
   hover();
-  renderer.render(scene, camera);
+  composer.render();
   placeSun();
   liveSite(now);
   caption();
