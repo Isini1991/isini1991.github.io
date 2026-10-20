@@ -69,8 +69,10 @@ const sky = new THREE.Mesh(new THREE.SphereGeometry(500, 48, 24), new THREE.Shad
     varying vec3 vDir; uniform vec3 uSun, uMoon, uTop, uMid, uLow, uHor, uSunCol; uniform float uTime, uNight, uStars;
     float h(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
     float h3(vec3 p){ return fract(sin(dot(p, vec3(127.1, 311.7, 74.7))) * 43758.5453); }
-    float n(vec2 p){ vec2 i = floor(p), f = fract(p); f = f*f*(3.-2.*f);
-      return mix(mix(h(i), h(i+vec2(1,0)), f.x), mix(h(i+vec2(0,1)), h(i+vec2(1,1)), f.x), f.y); }
+    // noise that repeats every P cells across, so the clouds wrap around the horizon without a seam
+    float n(vec2 p, float P){ vec2 i = floor(p), f = fract(p); f = f*f*(3.-2.*f);
+      float x0 = mod(i.x, P), x1 = mod(i.x + 1., P);
+      return mix(mix(h(vec2(x0, i.y)), h(vec2(x1, i.y)), f.x), mix(h(vec2(x0, i.y + 1.)), h(vec2(x1, i.y + 1.)), f.x), f.y); }
     void main(){
       vec3 d = normalize(vDir); float y = d.y;
       vec3 c = mix(uHor, uLow, smoothstep(-.02, .12, y));
@@ -90,8 +92,8 @@ const sky = new THREE.Mesh(new THREE.SphereGeometry(500, 48, 24), new THREE.Shad
         }
       }
       // long soft clouds
-      vec2 q = vec2(atan(d.x, -d.z) * 3., y * 22.);
-      float cl = n(q + vec2(uTime * .01, 0.)) * n(q * vec2(2.3, 1.7) - vec2(uTime * .015, 0.));
+      float az = atan(d.x, -d.z) / 6.2831853 + .5;
+      float cl = n(vec2(az * 19. + uTime * .01, y * 22.), 19.) * n(vec2(az * 38. - uTime * .015, y * 37.4), 38.);
       cl = smoothstep(.25, .6, cl) * smoothstep(.05, .2, y) * (1. - smoothstep(.35, .55, y));
       c = mix(c, mix(vec3(1., .9, .86), uMid * 1.15, uNight * .85), cl * .35);
       gl_FragColor = vec4(c, 1.);

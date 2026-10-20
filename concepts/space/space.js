@@ -46,8 +46,10 @@ const sky = new THREE.Mesh(new THREE.SphereGeometry(500, 48, 24), new THREE.Shad
   fragmentShader: `
     varying vec3 vDir; uniform vec3 uSun; uniform float uTime;
     float h(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
-    float n(vec2 p){ vec2 i = floor(p), f = fract(p); f = f*f*(3.-2.*f);
-      return mix(mix(h(i), h(i+vec2(1,0)), f.x), mix(h(i+vec2(0,1)), h(i+vec2(1,1)), f.x), f.y); }
+    // noise that repeats every P cells across, so the clouds wrap around the horizon without a seam
+    float n(vec2 p, float P){ vec2 i = floor(p), f = fract(p); f = f*f*(3.-2.*f);
+      float x0 = mod(i.x, P), x1 = mod(i.x + 1., P);
+      return mix(mix(h(vec2(x0, i.y)), h(vec2(x1, i.y)), f.x), mix(h(vec2(x0, i.y + 1.)), h(vec2(x1, i.y + 1.)), f.x), f.y); }
     void main(){
       vec3 d = normalize(vDir); float y = d.y;
       vec3 top = vec3(.27,.31,.86), lilac = vec3(.72,.47,.86), coral = vec3(1.,.55,.46), peach = vec3(1.,.8,.63);
@@ -57,8 +59,8 @@ const sky = new THREE.Mesh(new THREE.SphereGeometry(500, 48, 24), new THREE.Shad
       float s = max(dot(d, uSun), 0.);
       c += vec3(1., .86, .62) * (pow(s, 900.) * 1.6 + pow(s, 60.) * .45 + pow(s, 6.) * .18);
       // long soft clouds
-      vec2 q = vec2(atan(d.x, -d.z) * 3., y * 22.);
-      float cl = n(q * vec2(1., 1.) + vec2(uTime * .01, 0.)) * n(q * vec2(2.3, 1.7) - vec2(uTime * .015, 0.));
+      float az = atan(d.x, -d.z) / 6.2831853 + .5;
+      float cl = n(vec2(az * 19. + uTime * .01, y * 22.), 19.) * n(vec2(az * 38. - uTime * .015, y * 37.4), 38.);
       cl = smoothstep(.25, .6, cl) * smoothstep(.05, .2, y) * (1. - smoothstep(.35, .55, y));
       c = mix(c, vec3(1., .9, .86), cl * .35);
       gl_FragColor = vec4(c, 1.);
