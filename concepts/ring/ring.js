@@ -5,7 +5,7 @@ import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js"
 import { ShaderPass } from "three/addons/postprocessing/ShaderPass.js";
 import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
 (() => {
-const IMG = "../journey/img/";
+const IMG = new URL("../journey/img/", import.meta.url).href; // works from the main page too
 // Work in the ring, in order. Titles must match projects.js.
 const PICK = [
   ["False Gods", "false-gods"], ["Oráculo Records", "oraculo"], ["Tristan Bejawn", "tristanbejawn"],
