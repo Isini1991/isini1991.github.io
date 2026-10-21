@@ -1,0 +1,837 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mohammed Shams</title>
+<meta name="robots" content="noindex">
+<meta name="description" content="Mohammed Shams, films and commercial director based in Doha, Qatar.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@500;700;800&family=Hanken+Grotesk:wght@300;400;600&family=DM+Mono:wght@400;500&family=Reem+Kufi:wght@500;700&display=swap">
+<style>
+/* Concept: "One day under the sun". Shams is Arabic for the sun, so the whole site is a single day in Doha.
+   You scroll from sunrise to nightfall. The sun is the screen: each film plays inside its disc, one per hour,
+   with a sundial turning around it. The sky changes with the hour, and the day ends in an eclipse where the
+   contact lives. Light and warm by day, the opposite of a black portfolio. */
+:root {
+  --fg: #22100f;
+  --fg-dim: rgba(34, 16, 15, .62);
+  --rule: rgba(34, 16, 15, .2);
+  --accent: #8a1538;           /* Qatar maroon by day */
+  --sky: #f5dcc0;
+  --sun: #ffb347;
+  --f-display: "Syne", "Helvetica Neue", Arial, sans-serif;
+  --f-body: "Hanken Grotesk", "Helvetica Neue", Arial, sans-serif;
+  --f-mono: "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  --f-ar: "Reem Kufi", "Geeza Pro", "Noto Kufi Arabic", sans-serif;
+  --gl: max(16px, env(safe-area-inset-left, 0px));
+  --gr: max(16px, env(safe-area-inset-right, 0px));
+  --ease: cubic-bezier(.2, .7, .1, 1);
+  color-scheme: light;
+}
+html.dark { --fg: #f6eadb; --fg-dim: rgba(246, 234, 219, .66); --rule: rgba(246, 234, 219, .22); --accent: #ffb347; color-scheme: dark; }
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { overflow-x: clip; }
+html.lenis, html.lenis body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+body { margin: 0; background: var(--sky); color: var(--fg); font-family: var(--f-body); font-size: 1rem; line-height: 1.55; overflow-x: clip; -webkit-font-smoothing: antialiased; transition: color .6s; }
+a { color: inherit; }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+::selection { background: var(--sun); color: #22100f; }
+.lbl { font-family: var(--f-mono); font-size: .7rem; letter-spacing: .06em; text-transform: uppercase; font-variant-numeric: tabular-nums; }
+.dim { color: var(--fg-dim); }
+.ar { font-family: var(--f-ar); letter-spacing: 0; text-transform: none; }
+.tag { display: inline-block; font-family: var(--f-mono); font-size: .62rem; text-transform: uppercase; color: var(--accent); border: 1px solid currentColor; border-radius: 999px; padding: 1px 8px; vertical-align: middle; white-space: nowrap; }
+
+/* Sky and sun */
+#sky { position: fixed; inset: 0; width: 100%; height: 100%; display: block; z-index: 0; }
+html.no-gl #sky { display: none; }
+html.no-gl body { background: linear-gradient(#bcd8ea, #faf1e2) fixed; }
+
+/* Intro: a total eclipse over Doha. The sky shader draws it; this layer only carries the labels. */
+.dawn { position: fixed; inset: 0; z-index: 90; color: #f6eadb; pointer-events: none;
+  display: grid; grid-template-rows: auto 1fr auto; padding: calc(env(safe-area-inset-top, 0px) + 22px) var(--gr) calc(env(safe-area-inset-bottom, 0px) + 22px) var(--gl); }
+html.no-gl .dawn { background: #0b0612; }
+.dawn .row { display: flex; justify-content: space-between; gap: 16px; }
+.dawn.fallback { animation: gone .8s ease 7s forwards; }
+body.intro header, body.intro main, body.intro .dial { opacity: 0; }
+header, main { transition: opacity 1.2s ease; }
+@keyframes gone { to { opacity: 0; visibility: hidden; } }
+
+/* Chrome */
+header { position: fixed; top: 0; left: 0; right: 0; z-index: 40; padding: calc(env(safe-area-inset-top, 0px) + 18px) var(--gr) 18px var(--gl);
+  display: grid; grid-template-columns: 1fr auto 1fr; gap: 16px; align-items: center; }
+.brand { text-decoration: none; display: flex; gap: 10px; align-items: baseline; font: 800 1.05rem/1 var(--f-display); letter-spacing: -.01em; }
+.brand .ar { font-weight: 700; color: var(--accent); }
+nav { justify-self: end; display: flex; gap: clamp(8px, 2vw, 14px); }
+nav a { text-decoration: none; font-family: var(--f-mono); font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; padding: 6px 12px; border: 1px solid var(--rule); border-radius: 999px; transition: background .3s, color .3s, border-color .3s; }
+nav a:hover { background: var(--fg); color: var(--sky); border-color: var(--fg); }
+#now-time { justify-self: center; display: flex; gap: 10px; align-items: center; }
+#now-time b { font: 700 1rem/1 var(--f-display); font-variant-numeric: tabular-nums; }
+#now-time i { width: 8px; height: 8px; border-radius: 50%; background: var(--sun); box-shadow: 0 0 10px var(--sun); }
+
+/* Cursor: a small sun whose rays turn; it grows to carry a label */
+.cursor { position: fixed; left: 0; top: 0; z-index: 70; pointer-events: none; width: 22px; height: 22px; margin: -11px 0 0 -11px; display: grid; place-items: center; transition: width .4s var(--ease), height .4s var(--ease), margin .4s var(--ease); }
+.cursor::before { content: ""; position: absolute; inset: 0; border-radius: 50%; animation: spin 9s linear infinite;
+  background: repeating-conic-gradient(var(--fg) 0 4deg, transparent 4deg 30deg);
+  -webkit-mask: radial-gradient(circle, transparent 54%, #000 56%, #000 70%, transparent 72%); mask: radial-gradient(circle, transparent 54%, #000 56%, #000 70%, transparent 72%); }
+.cursor::after { content: ""; position: absolute; inset: 30%; border-radius: 50%; background: var(--fg); transition: inset .4s var(--ease), background .4s; }
+.cursor span { position: relative; z-index: 1; font-family: var(--f-mono); font-size: .62rem; text-transform: uppercase; letter-spacing: .06em; color: #22100f; opacity: 0; transition: opacity .2s; }
+.cursor.big { width: 92px; height: 92px; margin: -46px 0 0 -46px; }
+.cursor.big::after { inset: 14%; background: var(--sun); }
+.cursor.big span { opacity: 1; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (hover: hover) and (pointer: fine) { body.has-cursor, body.has-cursor * { cursor: none !important; } }
+@media not ((hover: hover) and (pointer: fine)) { .cursor { display: none; } }
+
+/* Sundial ring that sits around the sun while the films play */
+.dial { position: fixed; left: 0; top: 0; z-index: 5; pointer-events: none; width: 100px; height: 100px; opacity: 0; will-change: transform; }
+.dial svg { width: 100%; height: 100%; overflow: visible; }
+.dial text { font-family: var(--f-mono); font-size: 3.2px; letter-spacing: .5px; fill: var(--fg); text-transform: uppercase; }
+.dial .tick { stroke: var(--fg); stroke-width: .25; }
+.dial .tick.hr { stroke-width: .5; }
+.dial .shadow { stroke: var(--fg); stroke-width: .7; stroke-linecap: round; }
+
+main { position: relative; z-index: 10; pointer-events: none; }
+main a, main button, main img { pointer-events: auto; }
+.ch { position: relative; padding-left: var(--gl); padding-right: var(--gr); }
+.pin { position: sticky; top: 0; height: 100vh; display: grid; }
+#hero { height: 210vh; }
+#work { height: 1000vh; }
+#clients { height: 260vh; }
+#about { height: 170vh; }
+#contact { min-height: 170vh; }
+
+/* Hero: the dictionary entry */
+.hero-pin { grid-template-columns: minmax(0, 1fr); align-content: start; padding-top: calc(env(safe-area-inset-top, 0px) + 14vh); }
+.word { margin: 0; font: 800 clamp(4rem, 18vw, 20rem)/.8 var(--f-display); letter-spacing: -.06em; }
+.entry { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 8px 22px; align-items: baseline; margin-top: 3vh; max-width: 760px; }
+.entry .ar { font-size: clamp(2.2rem, 5vw, 3.8rem); font-weight: 700; color: var(--accent); line-height: 1; }
+.entry p { margin: 0; font-size: clamp(1.05rem, 1.7vw, 1.35rem); line-height: 1.35; }
+.entry p em { font-style: italic; color: var(--fg-dim); }
+.hero-foot { position: absolute; left: var(--gl); right: var(--gr); bottom: calc(env(safe-area-inset-bottom, 0px) + 22px); display: flex; justify-content: space-between; align-items: end; gap: 16px; }
+.hero-foot h1 { margin: 0; font-weight: 400; font-size: 1rem; max-width: 34ch; }
+.hero-foot h1 b { font-family: var(--f-display); font-weight: 700; }
+
+/* Work: one film per hour */
+.work-pin { grid-template-columns: minmax(0, 1fr) auto; align-content: end; gap: 24px; padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 40px); }
+.hour { display: grid; gap: 6px; max-width: 520px; }
+.hour .h { font: 800 clamp(3.4rem, 8vw, 7.5rem)/.85 var(--f-display); letter-spacing: -.05em; font-variant-numeric: tabular-nums; }
+.hour .h small { font-size: .32em; letter-spacing: 0; font-weight: 500; margin-left: .4em; vertical-align: .9em; color: var(--accent); }
+.hour h2 { margin: 6px 0 0; font: 700 clamp(1.5rem, 2.6vw, 2.4rem)/1.05 var(--f-display); letter-spacing: -.02em; text-wrap: balance; }
+.hour .cl { color: var(--accent); }
+.play { justify-self: start; margin-top: 10px; display: inline-flex; gap: 10px; align-items: center; background: var(--fg); color: var(--sky); border: 0; border-radius: 999px; padding: 11px 18px 11px 14px; cursor: pointer; font-family: var(--f-mono); font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; }
+.play::before { content: ""; border-left: 9px solid currentColor; border-top: 6px solid transparent; border-bottom: 6px solid transparent; }
+.hours { list-style: none; margin: 0; padding: 0; align-self: center; display: grid; gap: 2px; text-align: right; }
+.hours button { width: 100%; background: none; border: 0; padding: 3px 0; cursor: pointer; display: flex; gap: 14px; justify-content: end; align-items: baseline; color: var(--fg-dim); transition: color .3s; }
+.hours button.on { color: var(--fg); }
+.hours .t { font: 500 .95rem/1.2 var(--f-display); }
+.hours button.on .t { font-weight: 800; }
+.hours .n { font-family: var(--f-mono); font-size: .68rem; }
+.hours button.on .n { color: var(--accent); }
+
+/* Clients: names radiate from the sun like rays */
+.rays { position: fixed; left: 0; top: 0; z-index: 6; pointer-events: none; width: 0; height: 0; opacity: 0; }
+.rays span { position: absolute; left: 0; top: -.5em; white-space: nowrap; font: 800 clamp(.9rem, 1.7vw, 1.6rem)/1 var(--f-display); letter-spacing: -.02em; transform-origin: 0 50%; }
+.clients-pin { align-content: end; padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 40px); }
+.clients-pin p { margin: 0; max-width: 34ch; font-size: 1.1rem; }
+
+/* About: golden hour into sunset */
+.about-pin { align-content: center; }
+.about-in { max-width: 640px; display: grid; gap: 18px; }
+.about-in .lead { margin: 0; font: 800 clamp(2.4rem, 5.6vw, 5.2rem)/.92 var(--f-display); letter-spacing: -.045em; text-wrap: balance; }
+.about-in .lead em { font-style: normal; color: var(--accent); }
+.about-in p { margin: 0; max-width: 56ch; font-size: 1.08rem; }
+.facts { list-style: none; margin: 10px 0 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 24px; }
+.facts li { display: grid; gap: 2px; padding-block: 12px; border-top: 1px solid var(--rule); }
+
+/* Contact: the eclipse */
+.contact-pin { align-content: end; gap: clamp(26px, 5vw, 48px); padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 26px); }
+.contact-pin .big { margin: 0; font: 800 clamp(3rem, 7.5vw, 7.6rem)/.86 var(--f-display); letter-spacing: -.055em; max-width: 9ch; }
+.contact-pin .big em { font-style: normal; color: var(--accent); }
+.chans { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; }
+.chan { min-width: 0; display: grid; gap: 8px; align-content: start; border-top: 1px solid var(--rule); padding-top: 12px; }
+.chan .v { font-size: 1.05rem; overflow-wrap: anywhere; text-decoration: none; }
+.chan a.v:hover { color: var(--accent); }
+.copy { justify-self: start; background: none; border: 1px solid var(--rule); border-radius: 999px; padding: 4px 12px; cursor: pointer; color: var(--fg-dim); font-family: var(--f-mono); font-size: .66rem; text-transform: uppercase; }
+.copy:hover { color: var(--fg); border-color: var(--fg); }
+.foot { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; border-top: 1px solid var(--rule); padding-top: 14px; }
+.foot a { text-decoration: none; }
+
+/* Player */
+.player { position: fixed; inset: 0; z-index: 80; background: rgba(18, 8, 8, .94); color: #f6eadb; display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 28px; align-content: center;
+  padding: calc(env(safe-area-inset-top, 0px) + 64px) var(--gr) calc(env(safe-area-inset-bottom, 0px) + 24px) var(--gl); overflow: auto; }
+.player .screen { width: 100%; max-width: 100%; aspect-ratio: 16 / 9; background: #000; border-radius: 6px; overflow: hidden; }
+.player iframe { width: 100%; height: 100%; border: 0; display: block; }
+.player h3 { margin: 0 0 6px; font: 800 2rem/1 var(--f-display); letter-spacing: -.03em; }
+.player .pc { color: #ffb347; margin-bottom: 18px; }
+.credits { margin: 0; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 6px 16px; font-size: .92rem; }
+.credits dt { font-family: var(--f-mono); font-size: .64rem; text-transform: uppercase; opacity: .6; padding-top: 3px; }
+.credits dd { margin: 0; }
+.player .vlink { display: inline-block; margin-top: 18px; color: #ffb347; }
+.player .close { position: absolute; top: calc(env(safe-area-inset-top, 0px) + 16px); right: var(--gr); background: none; border: 1px solid rgba(246,234,219,.5); border-radius: 999px; padding: 8px 14px; cursor: pointer; color: #f6eadb; font-family: var(--f-mono); font-size: .7rem; text-transform: uppercase; }
+
+/* No WebGL: plain round stills */
+.still { display: none; }
+html.no-gl .still { display: block; width: min(60vw, 420px); aspect-ratio: 1; border-radius: 50%; object-fit: cover; margin-bottom: 18px; cursor: pointer; }
+
+@media (max-width: 860px) {
+  header { grid-template-columns: 1fr auto; }
+  #now-time { display: none; }
+  .work-pin { grid-template-columns: minmax(0, 1fr); }
+  .hours { display: none; }
+  .chans { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .player { grid-template-columns: minmax(0, 1fr); align-content: start; }
+  #work { height: 840vh; }
+}
+@media (max-width: 760px) {
+  .hero-pin { padding-top: calc(env(safe-area-inset-top, 0px) + 16vh); }
+  .entry { grid-template-columns: minmax(0, 1fr); }
+  .hero-foot { flex-direction: column; align-items: start; }
+  .hour .h { font-size: 3.4rem; }
+  .about-pin { align-content: end; padding-bottom: 40px; }
+  .facts { grid-template-columns: minmax(0, 1fr); }
+  .contact-pin .big { font-size: 3rem; }
+  nav a { padding: 5px 10px; }
+}
+@media (max-width: 520px) { .chans { grid-template-columns: minmax(0, 1fr); } nav a[href="#about"] { display: none; } }
+@media (prefers-reduced-motion: reduce) { .cursor::before { animation: none; } }
+</style>
+</head>
+<body class="intro">
+
+<canvas id="sky" aria-hidden="true"></canvas>
+
+<div class="dawn fallback" id="dawn" aria-hidden="true">
+  <div class="row lbl"><span>Mohammed Shams · Director</span><span>Doha · 25.29°N 51.53°E</span></div>
+  <div></div>
+  <div class="row lbl"><span id="dawn-lbl">Total eclipse · Doha · 04:30</span><span id="dawn-pct">Frame 000</span></div>
+</div>
+
+<div class="cursor" id="cursor" aria-hidden="true"><span id="cursor-label">Play</span></div>
+
+<div class="dial" id="dial" aria-hidden="true">
+  <svg viewBox="-50 -50 100 100">
+    <defs><path id="ring" d="M 0,-46 a 46,46 0 1,1 -0.01,0"/></defs>
+    <g id="ticks"></g>
+    <line class="shadow" id="gnomon" x1="0" y1="-41" x2="0" y2="-35"/>
+    <text><textPath href="#ring">Mohammed Shams · Films &amp; commercials · Doha, Qatar · One day, twelve films · </textPath></text>
+  </svg>
+</div>
+<div class="rays" id="rays" aria-hidden="true"></div>
+
+<header>
+  <a class="brand" href="#hero" data-go="hero">Shams <span class="ar">شمس</span></a>
+  <span class="lbl" id="now-time"><i></i><b id="clock">05:30</b><span id="clock-lbl">Dawn</span></span>
+  <nav aria-label="Main">
+    <a href="#work" data-go="work">Films</a>
+    <a href="#about" data-go="about">About</a>
+    <a href="#contact" data-go="contact">Contact</a>
+  </nav>
+</header>
+
+<main>
+  <section class="ch" id="hero">
+    <div class="pin hero-pin">
+      <p class="word" aria-hidden="true">Shams</p>
+      <div class="entry">
+        <span class="ar">شمس</span>
+        <p><em>shams, noun, Arabic.</em> The sun. The light every frame is made of, and the name of a director who shoots under it.</p>
+      </div>
+      <div class="hero-foot">
+        <h1><b>Mohammed Shams</b> directs commercials and official films for Lucid, Qatar Airways, Formula 1, FIFA and more.</h1>
+        <span class="lbl dim">Scroll to start the day ↓</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="ch" id="work" aria-label="Films">
+    <div class="pin work-pin">
+      <div class="hour" aria-live="polite">
+        <img class="still" id="still" alt="">
+        <span class="h" id="h-time">06:00<small>Sunrise</small></span>
+        <h2 id="h-title">Saudi National Day</h2>
+        <span class="lbl cl" id="h-client">Lucid · Automotive · 2026</span>
+        <button class="play" type="button" id="h-play" data-cursor="Play">Play this film</button>
+      </div>
+      <ol class="hours" id="hours"></ol>
+    </div>
+  </section>
+
+  <section class="ch" id="clients">
+    <div class="pin clients-pin">
+      <p><span class="lbl dim">Golden hour · Clients</span><br>Brands and broadcasters who have shot under his sun.</p>
+    </div>
+  </section>
+
+  <section class="ch" id="about">
+    <div class="pin about-pin">
+      <div class="about-in">
+        <p class="lead">He writes it, shoots it and <em>cuts it.</em></p>
+        <p>Mohammed Shams is a films and commercial director based at Qatar Foundation in Al-Rayyan. He writes, directs and often edits his own work, from car films for Lucid and Toyota to official films for Formula 1, FIFA and UFC. He works with agencies including Ogilvy, FP7 McCann and Red Banana, and grades with Company 3. <span class="tag">Draft copy, needs approval</span></p>
+        <ul class="facts">
+          <li><span class="lbl dim">Based in</span><span>Al-Rayyan, Qatar</span></li>
+          <li><span class="lbl dim">Films</span><span>37 on Vimeo</span></li>
+          <li><span class="lbl dim">Does</span><span>Writes, directs, edits</span></li>
+          <li><span class="lbl dim">Colour</span><span>Company 3, Matt Osborne</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="ch" id="contact">
+    <div class="pin contact-pin">
+      <p class="big">Let’s make something <em>bright.</em></p>
+      <div class="chans">
+        <div class="chan">
+          <span class="lbl dim">Email</span>
+          <span class="v" id="email">shamz_ar3fin@hotmail.com</span>
+          <button class="copy" type="button" id="copy-email">Copy address</button>
+        </div>
+        <div class="chan">
+          <span class="lbl dim">Instagram</span>
+          <a class="v" href="https://www.instagram.com/shamoss.92" target="_blank" rel="noopener">@shamoss.92 ↗</a>
+        </div>
+        <div class="chan">
+          <span class="lbl dim">Vimeo</span>
+          <a class="v" href="https://vimeo.com/user161590025" target="_blank" rel="noopener">All 37 films ↗</a>
+        </div>
+        <div class="chan">
+          <span class="lbl dim">Representation</span>
+          <span class="v">Production company</span>
+          <span class="tag" style="justify-self:start">Placeholder</span>
+        </div>
+      </div>
+      <div class="foot lbl dim">
+        <span>© Mohammed Shams</span>
+        <span id="doha">Doha --:--</span>
+        <a href="#hero" data-go="hero">Start a new day ↺</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="player" id="player" hidden role="dialog" aria-modal="true" aria-labelledby="p-title">
+  <button class="close" type="button" id="player-close">Close ✕</button>
+  <div class="screen" id="screen"></div>
+  <div>
+    <h3 id="p-title"></h3>
+    <div class="pc lbl" id="p-client"></div>
+    <dl class="credits" id="p-credits"></dl>
+    <a class="vlink lbl" id="p-link" target="_blank" rel="noopener">Open on Vimeo ↗</a>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>
+<script>
+(function () {
+  'use strict';
+  // ---------- Content. One film per hour, 06:00 to 17:00. `img` is the Vimeo thumbnail id.
+  var WORK = [
+    { id: '1227386321', h: 'b42faa21d4', title: 'Saudi National Day', client: 'Lucid', year: 2026, kind: 'Automotive', img: '2201593439-b34d29a153a9f3bf49315d4cb9cd45e389d97f507fa4735b83ffe87d328cd10e-d',
+      credits: [['Agency', 'Red Banana'], ['Production', 'Pro Circle'], ['DOP', 'Vladislav Milchenko'], ['Producer', 'Omar Al Fadel'], ['Colour', 'Company 3, Matt Osborne'], ['VFX', 'Post Fusion']] },
+    { id: '1200342004', h: '6c3fa1ca73', title: 'FIFA World Cup 2026 Promo', client: 'Qatar Airways × QFA', year: 2026, kind: 'Sport', img: '2167404881-eba8d1bfd23e281efe05ba7424bdb1a5833cccc83eb6788a0c3f6de3367de48b-d',
+      credits: [['Written & directed', 'Mohammed Shams'], ['DOP', 'Vedran Stelar'], ['Production', 'Digitek Productions'], ['Producer', 'Awad Khan'], ['Editor', 'Ahmed Safa'], ['Colour', 'Company 3, Matt Osborne'], ['VFX', 'XYZ Studios']] },
+    { id: '1200725635', h: '8ce035f4df', title: 'FIFA World Cup 2026 Film', client: 'Toyota × QFA', year: 2026, kind: 'Automotive', img: '2167898931-f365eb09ebaa38a02cb1f802985e88c9886d6fb1ca5b3a189f2f39f28d2dfba6-d',
+      credits: [['Written & directed', 'Mohammed Shams'], ['Agency', 'Ogilvy Qatar'], ['Production', 'Etsh Films'], ['Cinematographer', 'Anas MK'], ['Edit', 'Mohammed Shams'], ['Colour', 'Company 3, Matt Osborne'], ['VFX', 'Post Fusion']] },
+    { id: '1146008023', h: '9bca51e8c5', title: 'Qatar Grand Prix', client: 'Formula 1', year: 2025, kind: 'Sport', img: '2095230717-f38490a6ae276361ee8a697c34f81031bfd0486cb83a0cf322014de5c72cb124-d',
+      credits: [['Director', 'Mohammed Shams'], ['Production', 'Katara Studios'], ['Executive producers', 'Ahmed Al Baker, Mahmoud Hamaky'], ['Cinematography', 'Vladislav Milchenko']] },
+    { id: '1146008037', h: 'bc79625019', title: 'Official Promo Film', client: 'UFC × Visit Qatar', year: 2025, kind: 'Sport', img: '2095231581-6eb124dfc2bb5714a5cf8f14bb813eec577c4328ce9225f9a8d227fee4a8ed7d-d',
+      credits: [['Director', 'Mohammed Shams'], ['Production', 'Katara Studios'], ['Executive producers', 'Ahmed Al Baker, Mahmoud Hamaky'], ['Cinematography', 'Vladislav Milchenko']] },
+    { id: '1146008038', h: 'b1c47b6c1b', title: 'U17 World Cup', client: 'FIFA', year: 2025, kind: 'Sport', img: '2095232098-83014f46deca42a9128ab54661457ef72012a58f182869732f14a5ade98500cb-d',
+      credits: [['Director', 'Mohammed Shams'], ['Production', 'Katara Studios'], ['Cinematography', 'Baris Kanbal']] },
+    { id: '1187566928', h: '2277482f0e', title: 'Go Connect', client: 'Ooredoo Qatar', year: 2026, kind: 'Telecom', img: '2151696006-24df94e4f086a5985b6dea0a967392644ee8f9704371143475807c2df1722ab5-d',
+      credits: [['Director & editor', 'Mohammed Shams'], ['Agency', 'FP7 McCann Doha'], ['Producer', 'Farah Gomaa'], ['Cinematography', 'Anas MK'], ['Post', 'Post Fusion'], ['Grade', 'Cora Post Studio']] },
+    { id: '1202910013', h: 'd7b0f9fa99', title: 'Royale Stellar', client: 'Asian Paints', year: 2026, kind: 'Brand', img: '2170775746-fb262bb6637f786a2274a922441f7f1d97bff76e2595af4107d996bc47ec3423-d',
+      credits: [['Director', 'Mohammed Shams'], ['Agency', 'Ogilvy India'], ['DOP', 'Vedran Stelar'], ['Producer', 'Aidin Batirbekov']] },
+    { id: '1146008039', h: '91a65c39fe', title: 'Marathon 2026', client: 'Ooredoo', year: 2026, kind: 'Sport', img: '2095227881-1370ea5a8897fb9c636ef5dddc6f9903e8944bea9d82fc84b968a94a3411ec18-d',
+      credits: [['Director', 'Mohammed Shams'], ['Agency', 'FP7 Qatar'], ['Cinematography', 'Vladislav Milchenko']] },
+    { id: '1167254069', h: '154c50b348', title: 'The Princess Inside You', client: 'Reef', year: 2026, kind: 'Brand', img: '2125168927-de0980d2e78872b67a03fe7bd6a35861ff3ee3cf875c7bef8f2f43252c59438f-d',
+      credits: [['Director', 'Mohammed Shams'], ['Production', 'YellowDuck Films'], ['Executive producer', 'Youssef Zeid'], ['Producer', 'Amira Ismail']] },
+    { id: '1145991471', h: '55e8691aa3', title: '25 Years', client: 'QDF', year: 2025, kind: 'Brand', img: '2095221235-30f817b8200240e5437e67be2d579a169bfb348a82a6d0d9210853438f3f9c0b-d',
+      credits: [['Director', 'Mohammed Shams'], ['Production', 'Resolution Films'], ['Cinematography', 'Vladislav Milchenko'], ['Post', 'Rabid Rat']] },
+    { id: '1169377095', h: 'ee66e3ac8a', title: 'Togetherness This Ramadan', client: 'Ooredoo', year: 2026, kind: 'Telecom', img: '2128112287-32f351e86672d8a86e300dd6d306e64dd7b9d76397f280e0574df4eb71f9955f-d',
+      credits: [['Director', 'Mohammed Shams'], ['Agency', 'FP7 McCann Doha'], ['Producer', 'Aydin Batirbekov']] }
+  ];
+  var CLIENTS = ['Lucid', 'Qatar Airways', 'Toyota', 'Formula 1', 'FIFA', 'UFC', 'Visit Qatar', 'Ooredoo', 'Asian Paints', 'Qatar Foundation', 'Katara Studios', 'Ogilvy', 'FP7 McCann', 'Red Banana'];
+  // The sky through the day: [day position, top colour, horizon colour]
+  var SKY = [
+    [0.00, '#2c1f4a', '#f0a07e'],
+    [0.10, '#7fa9cf', '#f5dcc0'],
+    [0.30, '#b9d6ea', '#fbf2e3'],
+    [0.50, '#e6d0a6', '#f9eed9'],
+    [0.64, '#dc7d33', '#f7c27a'],
+    [0.78, '#6e0f2c', '#e2643a'],
+    [0.90, '#2a0714', '#5a1424'],
+    [1.00, '#0e0307', '#240814']
+  ];
+  // The clock: day position to hour of day
+  var CLOCK = [[0, 5.5], [0.08, 6], [0.62, 17], [0.72, 17.6], [0.86, 18.2], [1, 19.2]];
+
+  var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var fine = matchMedia('(hover: hover) and (pointer: fine)').matches;
+  var $ = function (id) { return document.getElementById(id); };
+  function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+  function lerp(a, b, t) { return a + (b - a) * t; }
+  function sstep(a, b, v) { var t = clamp((v - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); }
+  function pad(n, l) { n = String(n); while (n.length < (l || 2)) n = '0' + n; return n; }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function hex(h) { return [parseInt(h.slice(1, 3), 16) / 255, parseInt(h.slice(3, 5), 16) / 255, parseInt(h.slice(5, 7), 16) / 255]; }
+  function thumb(w) { return 'https://i.vimeocdn.com/video/' + w.img + '_1280?region=us'; }
+  function hhmm(h) { var m = Math.round(h * 60); return pad(Math.floor(m / 60) % 24) + ':' + pad(m % 60); }
+  function partOfDay(h) { return h < 6 ? 'Dawn' : h < 7 ? 'Sunrise' : h < 11 ? 'Morning' : h < 13 ? 'Noon' : h < 16 ? 'Afternoon' : h < 17.4 ? 'Golden hour' : h < 18.4 ? 'Sunset' : 'Nightfall'; }
+  function pw(keys, t) { // piecewise linear
+    for (var i = 1; i < keys.length; i++) if (t <= keys[i][0]) return lerp(keys[i - 1][1], keys[i][1], (t - keys[i - 1][0]) / (keys[i][0] - keys[i - 1][0]));
+    return keys[keys.length - 1][1];
+  }
+  var SKYC = SKY.map(function (k) { return [k[0], hex(k[1]), hex(k[2])]; });
+  function skyAt(t) {
+    for (var i = 1; i < SKYC.length; i++) if (t <= SKYC[i][0]) {
+      var a = SKYC[i - 1], b = SKYC[i], f = (t - a[0]) / (b[0] - a[0]);
+      return [[0, 1, 2].map(function (j) { return lerp(a[1][j], b[1][j], f); }), [0, 1, 2].map(function (j) { return lerp(a[2][j], b[2][j], f); })];
+    }
+    return [SKYC[SKYC.length - 1][1], SKYC[SKYC.length - 1][2]];
+  }
+
+  // ---------- Player
+  var player = $('player'), screen = $('screen'), lastFocus = null;
+  function openPlayer(w) {
+    lastFocus = document.activeElement;
+    screen.innerHTML = '<iframe src="https://player.vimeo.com/video/' + w.id + '?h=' + w.h + '&autoplay=1&title=0&byline=0&portrait=0&dnt=1&color=ffb347" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen title="' + esc(w.client + ', ' + w.title) + '"></iframe>';
+    $('p-title').textContent = w.title;
+    $('p-client').textContent = w.client + ' · ' + w.year;
+    $('p-credits').innerHTML = w.credits.map(function (c) { return '<dt>' + esc(c[0]) + '</dt><dd>' + esc(c[1]) + '</dd>'; }).join('');
+    $('p-link').href = 'https://vimeo.com/' + w.id;
+    player.hidden = false; $('player-close').focus();
+    if (lenis) lenis.stop();
+  }
+  function closePlayer() { screen.innerHTML = ''; player.hidden = true; if (lenis) lenis.start(); if (lastFocus) lastFocus.focus(); }
+  $('player-close').onclick = closePlayer;
+  player.addEventListener('click', function (e) { if (e.target === player) closePlayer(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !player.hidden) closePlayer(); });
+
+  // ---------- Smooth scroll
+  var lenis = null;
+  if (window.Lenis && !reduce) {
+    lenis = new Lenis({ lerp: 0.08, wheelMultiplier: 0.85 });
+    if (window.gsap) { gsap.ticker.add(function (t) { lenis.raf(t * 1000); }); gsap.ticker.lagSmoothing(0); }
+    else (function r(t) { lenis.raf(t); requestAnimationFrame(r); })(0);
+    if (window.ScrollTrigger) lenis.on('scroll', ScrollTrigger.update);
+  }
+  function scrollToY(y) { if (lenis) lenis.scrollTo(y, { duration: 1.4 }); else scrollTo({ top: y, behavior: reduce ? 'auto' : 'smooth' }); }
+
+  // ---------- Hours list, sundial ticks, client rays
+  var hoursEl = $('hours');
+  WORK.forEach(function (w, i) {
+    var li = document.createElement('li');
+    li.innerHTML = '<button type="button" data-i="' + i + '" data-cursor="Go"><span class="t">' + esc(w.client) + '</span><span class="n">' + pad(6 + i) + ':00</span></button>';
+    hoursEl.appendChild(li);
+  });
+  var secWork = $('work');
+  function workY(i) { return secWork.offsetTop + (secWork.offsetHeight - innerHeight) * (i / (WORK.length - 1)); }
+  hoursEl.addEventListener('click', function (e) { var b = e.target.closest('button'); if (b) scrollToY(workY(+b.getAttribute('data-i'))); });
+
+  var ticks = '';
+  for (var t = 0; t < 72; t++) {
+    var a = t / 72 * Math.PI * 2, hr = t % 6 === 0, r1 = hr ? 38 : 39.5;
+    ticks += '<line class="tick' + (hr ? ' hr' : '') + '" x1="' + (Math.sin(a) * r1).toFixed(2) + '" y1="' + (-Math.cos(a) * r1).toFixed(2) + '" x2="' + (Math.sin(a) * 41).toFixed(2) + '" y2="' + (-Math.cos(a) * 41).toFixed(2) + '"/>';
+  }
+  $('ticks').innerHTML = ticks;
+  var rays = $('rays');
+  rays.innerHTML = CLIENTS.map(function (c) { return '<span>' + esc(c) + '</span>'; }).join('');
+  var rayEls = [].slice.call(rays.children);
+
+  // ---------- Nav: the screen flares for a beat, like glancing at the sun, and the day jumps
+  var flare = document.createElement('div');
+  flare.style.cssText = 'position:fixed;inset:0;z-index:85;pointer-events:none;opacity:0;background:radial-gradient(circle at 50% 45%,#fffbe8 0%,#ffd27a 40%,rgba(255,160,80,.6) 100%)';
+  document.body.appendChild(flare);
+  document.querySelectorAll('[data-go]').forEach(function (a) {
+    a.addEventListener('click', function (e) {
+      e.preventDefault();
+      var el = $(a.getAttribute('data-go'));
+      var y = el.offsetTop + (el.id === 'about' || el.id === 'contact' ? el.offsetHeight - innerHeight : 0);
+      function jump() { if (lenis) lenis.scrollTo(y, { immediate: true, force: true }); else scrollTo(0, y); }
+      if (!window.gsap || reduce) { jump(); return; }
+      gsap.timeline().to(flare, { opacity: 1, duration: 0.25, ease: 'power2.in', onComplete: jump }).to(flare, { opacity: 0, duration: 0.9, ease: 'power2.out', delay: 0.05 });
+    });
+  });
+
+  // ---------- WebGL: one full-screen shader draws the sky, the sun, the film inside it and the eclipse
+  var gl = false, renderer, scene, camera, U, texs = [];
+  try {
+    if (!window.THREE) throw new Error('three missing');
+    renderer = new THREE.WebGLRenderer({ canvas: $('sky'), antialias: false, powerPreference: 'high-performance' });
+    gl = true;
+  } catch (err) { document.documentElement.classList.add('no-gl'); }
+
+  var FS = [
+    'precision highp float;',
+    'uniform vec2 uRes; uniform float uTime; uniform vec2 uSun; uniform float uRad;',
+    'uniform vec3 uTop; uniform vec3 uBot; uniform sampler2D uTexA; uniform sampler2D uTexB;',
+    'uniform float uMix; uniform float uStrip; uniform float uBurnF; uniform float uHot; uniform float uRing; uniform float uReel; uniform float uBurn; uniform float uFilm; uniform float uHover; uniform float uEclipse; uniform float uFlare; uniform vec2 uMouse; uniform float uVel;',
+    'varying vec2 vUv;',
+    'float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }',
+    'float noise(vec2 p){ vec2 i = floor(p), f = fract(p); vec2 u = f * f * (3.0 - 2.0 * f);',
+    '  return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), u.x), mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), u.x), u.y); }',
+    'float fbm(vec2 p){ float v = 0.0, a = 0.5; for (int i = 0; i < 5; i++){ v += a * noise(p); p = p * 2.03 + 7.1; a *= 0.5; } return v; }',
+    'void main(){',
+    '  vec2 px = vUv * uRes;',
+    '  vec3 col = mix(uBot, uTop, smoothstep(0.0, 1.0, vUv.y));',
+    '  vec2 q = (px - uSun) / uRad; float d = length(q); float ang = atan(q.y, q.x);',
+    '  vec3 warm = vec3(1.0, 0.72, 0.4);',
+    // the sun's light spilling into the sky, and a warm band at its height
+    '  float glow = exp(-max(d - 1.0, 0.0) * 1.6) * (0.5 + 0.3 * uFlare) * (1.0 - 0.75 * uEclipse);',
+    '  col += warm * glow * 0.45;',
+    '  col += warm * 0.12 * exp(-abs(px.y - uSun.y) / (uRad * 1.5)) * (1.0 - uEclipse);',
+    // corona: slow turning streamers outside the disc, strongest in the eclipse
+    '  float st = fbm(vec2(ang * 2.5, uTime * 0.12)) * fbm(vec2(ang * 7.0 + 3.0, uTime * 0.2 - d));',
+    '  float cor = smoothstep(2.8, 1.0, d) * smoothstep(0.97, 1.08, d) * st;',
+    '  col += mix(vec3(1.0, 0.78, 0.5), vec3(1.0, 0.95, 0.9), uEclipse) * cor * (0.55 + 2.2 * uEclipse);',
+    '  if (d < 1.06) {',
+    '    vec2 sp = q * 2.4;',
+    '    float n = fbm(sp + vec2(uTime * 0.05, -uTime * 0.03) + fbm(sp * 1.6 - uTime * 0.04));',
+    '    vec3 plasma = mix(vec3(1.0, 0.5, 0.16), vec3(1.0, 0.96, 0.8), smoothstep(0.25, 0.8, n));',
+    '    plasma *= mix(1.0, 0.6, pow(d, 3.0));',
+    // the film seen through the sun, like through a lens: it bulges at the centre and burns at the edge
+    '    vec2 lq = q * (0.84 + 0.16 * d * d);',
+    '    vec2 m = (uMouse - uSun) / uRad; float md = length(q - m);',
+    '    lq += (q - m) / max(md, 1e-3) * sin(md * 18.0 - uTime * 5.0) * 0.012 * uHover * smoothstep(0.6, 0.0, md);',
+    '    lq.x += uVel * 0.04 * sin(lq.y * 12.0 + uTime * 8.0);',
+    '    vec2 tuv = vec2(0.5 + lq.x * 0.5 * 0.5625 * 0.96, 0.5 + lq.y * 0.5 * 0.96);',
+    '    vec3 film = mix(texture2D(uTexA, tuv).rgb, texture2D(uTexB, tuv).rgb, smoothstep(0.35, 0.65, uMix));',
+    '    float burn = sin(uMix * 3.14159);',
+    '    film = mix(film, plasma * 1.1, burn * 0.9);',
+    '    film = mix(film, film * vec3(1.1, 0.97, 0.82), 0.45) * mix(1.0, 0.55, pow(d, 5.0));',
+    '    vec3 disc = mix(plasma, film, uFilm);',
+    '    col = mix(col, disc, smoothstep(1.0, 0.988, d));',
+    '    col += vec3(1.0, 0.86, 0.6) * smoothstep(0.9, 1.0, d) * smoothstep(1.06, 1.0, d) * (0.35 + 0.4 * uFilm);',
+    '  }',
+    // the moon slides across for the eclipse
+    '  if (uEclipse > 0.001) {',
+    '    vec2 mc = uSun + vec2(mix(2.3, 0.0, uEclipse), mix(-0.5, 0.0, uEclipse)) * uRad;',
+    '    float mdd = length(px - mc) / (uRad * 1.005);',
+    '    float moon = smoothstep(1.0, 0.992, mdd);',
+    // his films flicker inside the moon, like a projector in the dark
+    '    vec2 mq = (px - mc) / uRad;',
+    '    vec3 reel = texture2D(uTexA, vec2(0.5 + mq.x * 0.5 * 0.5625 * 1.15, 0.5 + mq.y * 0.5 * 1.15)).rgb;',
+    '    reel *= (0.72 + 0.28 * hash(vec2(floor(uTime * 24.0), 3.0))) * 0.6 * smoothstep(1.0, 0.55, mdd);',
+    '    reel += 0.07 * step(0.996, hash(vec2(floor(px.x / 2.0), floor(uTime * 24.0))));',
+    '    vec3 moonCol = mix(uTop * 0.55, reel, uReel);',
+    // first light burns through the film from the diamond point
+    '    vec2 rp = uSun + vec2(-0.977, 0.212) * uRad;',
+    '    float bd = length(px - rp) / uRad + (fbm(px / uRad * 3.0 + uTime * 0.6) - 0.5) * 0.4;',
+    '    float br = uBurn * 2.7;',
+    '    float burnt = smoothstep(br, br - 0.04, bd) * step(0.001, uBurn);',
+    '    float edge = smoothstep(br - 0.14, br, bd) * smoothstep(br + 0.03, br, bd) * step(0.001, uBurn) * (1.0 - uBurn * 0.6);',
+    '    col = mix(col, moonCol, moon * (1.0 - burnt));',
+    '    col += vec3(1.0, 0.55, 0.18) * edge * moon * 2.2;',
+    '    col += vec3(1.0, 0.9, 0.75) * smoothstep(1.03, 1.0, mdd) * smoothstep(0.985, 1.0, mdd) * uEclipse * 1.2 * (1.0 - burnt);',
+    '  }',
+    // the diamond ring: first light breaking past the moon's edge
+    '  if (uRing > 0.001) { vec2 rq = uSun + vec2(-0.977, 0.212) * uRad; vec2 dd = px - rq; float r = length(dd) / uRad;',
+    '    float core = exp(-r * 38.0) * 3.0 + exp(-r * 7.0) * 0.7;',
+    '    float streak = exp(-abs(dd.y) / (uRad * 0.012)) * exp(-abs(dd.x) / (uRad * 2.6));',
+    '    float star = pow(max(0.0, cos(atan(dd.y, dd.x) * 3.0)), 40.0) * exp(-r * 2.5);',
+    '    col += vec3(1.0, 0.95, 0.86) * (core + streak * 1.3 + star) * uRing;',
+    '    col += vec3(1.0, 0.9, 0.75) * 0.2 * uRing * uRing; }',
+    // intro B: a strip of 35mm film in the dark, his films flickering in the gate, until sunlight burns through
+    '  if (uStrip > 0.001) {',
+    '    float fh = min(uRes.y * 0.56, uRes.x * 0.86 * 9.0 / 16.0); float fw = fh * 16.0 / 9.0; float band = fh * 0.17;',
+    '    vec2 c = uRes * 0.5 + vec2(0.0, sin(uTime * 31.0) * uRes.y * 0.0012);',
+    '    vec2 f = (px - c) / vec2(fw, fh) + 0.5;',
+    '    float yb = abs(px.y - c.y) - fh * 0.5;',
+    '    vec3 film = vec3(0.015, 0.01, 0.015);',
+    '    float inStrip = step(yb, band);',
+    '    film = mix(film, vec3(0.13, 0.075, 0.03), inStrip);',
+    '    float hx = fract((px.x - c.x) / (fw / 9.0) + uTime * 0.5);',
+    '    float hole = step(0.32, hx) * step(hx, 0.68) * step(band * 0.32, yb) * step(yb, band * 0.72);',
+    '    film = mix(film, vec3(0.01), hole * inStrip);',
+    '    float inF = step(0.0, f.x) * step(f.x, 1.0) * step(0.0, f.y) * step(f.y, 1.0);',
+    '    vec3 img = texture2D(uTexA, f).rgb * (0.78 + 0.22 * hash(vec2(floor(uTime * 24.0), 7.0)));',
+    '    img += 0.08 * step(0.997, hash(vec2(floor(px.x / 2.0), floor(uTime * 24.0)))) - 0.05 * step(0.998, hash(vec2(floor(px.y / 3.0), floor(uTime * 12.0))));',
+    '    img = mix(img, img * vec3(1.05, 0.95, 0.8), 0.4);',
+    '    film = mix(film, img, inF);',
+    '    film += (hash(px * 0.5 + floor(uTime * 24.0)) - 0.5) * 0.06;',
+    '    film += vec3(1.0, 0.7, 0.4) * exp(-length(px - uSun) / (uRes.y * 0.06)) * uHot * 1.4;',
+    '    float bd = length(px - uSun) / max(uRes.x, uRes.y) + (fbm(px / uRes.y * 4.0 + uTime * 0.5) - 0.5) * 0.12;',
+    '    float br = uBurnF * 1.25;',
+    '    float on = step(0.001, uBurnF);',
+    '    float burnt = smoothstep(br, br - 0.008, bd) * on;',
+    '    float edge = smoothstep(br - 0.045, br, bd) * smoothstep(br + 0.01, br, bd) * on;',
+    '    float scorch = smoothstep(br + 0.14, br, bd) * on;',
+    '    film = mix(film, film * vec3(0.55, 0.3, 0.12), scorch * 0.85);',
+    '    col = mix(col, film, uStrip * (1.0 - burnt));',
+    '    col += vec3(1.0, 0.5, 0.14) * edge * 3.0 * uStrip;',
+    '  }',
+    // a little dither so the gradients never band
+    '  col += (hash(px + uTime) - 0.5) / 255.0 * 2.0;',
+    '  gl_FragColor = vec4(col, 1.0);',
+    '}'].join('\n');
+
+  function posterTex(w) {
+    var cv = document.createElement('canvas'); cv.width = 1024; cv.height = 576;
+    var x = cv.getContext('2d');
+    var g = x.createLinearGradient(0, 0, 0, 576); g.addColorStop(0, '#e0723a'); g.addColorStop(1, '#6e0f2c');
+    x.fillStyle = g; x.fillRect(0, 0, 1024, 576);
+    x.fillStyle = '#fff3e0'; x.textAlign = 'center';
+    x.font = '800 64px Syne, Arial, sans-serif'; x.fillText(w.client, 512, 300);
+    x.font = '400 30px "Hanken Grotesk", Arial, sans-serif'; x.fillText(w.title, 512, 350);
+    var t = new THREE.CanvasTexture(cv); t.minFilter = THREE.LinearFilter;
+    var srcs = [thumb(w), 'https://vumbnail.com/' + w.id + '_large.jpg'];
+    (function load(k) {
+      if (k >= srcs.length) return;
+      var im = new Image(); im.crossOrigin = 'anonymous';
+      im.onload = function () { x.drawImage(im, 0, 0, 1024, 576); t.needsUpdate = true; };
+      im.onerror = function () { load(k + 1); };
+      im.src = srcs[k];
+    })(0);
+    return t;
+  }
+
+  if (gl) {
+    renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 1.5));
+    scene = new THREE.Scene();
+    camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+    texs = WORK.map(posterTex);
+    U = {
+      uRes: { value: new THREE.Vector2(1, 1) }, uTime: { value: 0 }, uSun: { value: new THREE.Vector2(0, 0) }, uRad: { value: 100 },
+      uTop: { value: new THREE.Color() }, uBot: { value: new THREE.Color() }, uTexA: { value: texs[0] }, uTexB: { value: texs[1] },
+      uMix: { value: 0 }, uStrip: { value: 0 }, uBurnF: { value: 0 }, uHot: { value: 0 }, uRing: { value: 0 }, uReel: { value: 0 }, uBurn: { value: 0 }, uFilm: { value: 0 }, uHover: { value: 0 }, uEclipse: { value: 0 }, uFlare: { value: 0 }, uMouse: { value: new THREE.Vector2(-9999, -9999) }, uVel: { value: 0 }
+    };
+    var mat = new THREE.ShaderMaterial({ uniforms: U, vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }', fragmentShader: FS, depthTest: false, depthWrite: false });
+    scene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), mat));
+  }
+
+  // ---------- Scroll state
+  var secs = { hero: $('hero'), work: secWork, clients: $('clients'), about: $('about'), contact: $('contact') };
+  var st = { hero: 0, work: 0, clients: 0, about: 0, contact: 0, vel: 0, lastY: scrollY };
+  function pass(el) { var r = el.getBoundingClientRect(); return clamp(-r.top / Math.max(1, r.height - innerHeight), 0, 1); }
+  function readScroll() {
+    for (var k in secs) st[k] = pass(secs[k]);
+    var dy = scrollY - st.lastY; st.lastY = scrollY;
+    st.vel = lerp(st.vel, clamp(dy / 80, -1, 1), 0.12);
+  }
+
+  // ---------- Where the sun is, chapter by chapter (CSS pixels, from the top left)
+  var W = innerWidth, H = innerHeight, small = W < 760;
+  function S(x, y, r) { return { x: x, y: y, r: r }; }
+  function mixS(a, b, t) { return S(lerp(a.x, b.x, t), lerp(a.y, b.y, t), lerp(a.r, b.r, t)); }
+  function sunAt() {
+    var m = Math.min(W, H), s;
+    var heroS = small ? S(W * 0.78, H * 1.0, W * 0.5) : S(W * 0.8, H * 1.1, m * 0.6);
+    var wr = small ? W * 0.38 : m * 0.3, wp = st.work;
+    var workS = small ? S(W * 0.5, H * 0.34, wr) : S(W * (0.6 - 0.06 * Math.cos(Math.PI * wp)), H * (0.46 - 0.05 * Math.sin(Math.PI * wp)), wr);
+    var cliS = S(W * 0.5, H * (small ? 0.4 : 0.46), small ? W * 0.17 : m * 0.15);
+    var aboutS = small ? S(W * 0.8, H * 0.12, W * 0.12) : S(W * 0.74, H * 0.62, m * 0.24);
+    var contS = small ? S(W * 0.74, H * 0.15, W * 0.15) : S(W * 0.76, H * 0.3, m * 0.17);
+    s = mixS(heroS, workS, sstep(0, 1, st.hero));
+    s = mixS(s, cliS, sstep(0, 0.3, st.clients));
+    s = mixS(s, aboutS, sstep(0, 0.5, st.about));
+    s = mixS(s, contS, sstep(0, 0.4, st.contact));
+    return s;
+  }
+
+  // ---------- HUD
+  var clockEl = $('clock'), clockLbl = $('clock-lbl'), hTime = $('h-time'), hTitle = $('h-title'), hClient = $('h-client'), still = $('still');
+  var dial = $('dial'), gnomon = $('gnomon'), shown = -1, isDark = null, curFilm = 0;
+  function setFilm(i) {
+    if (i === shown) return; shown = i; curFilm = i;
+    var w = WORK[i];
+    hTime.innerHTML = pad(6 + i) + ':00<small>' + partOfDay(6 + i + 0.01) + '</small>';
+    hTitle.textContent = w.title;
+    hClient.textContent = w.client + ' · ' + w.kind + ' · ' + w.year;
+    hoursEl.querySelectorAll('button').forEach(function (b, k) { b.classList.toggle('on', k === i); });
+    if (!gl) still.src = thumb(w);
+    if (window.gsap && !reduce) gsap.fromTo([hTitle, hClient], { y: 18, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, stagger: 0.05, ease: 'power3.out' });
+  }
+  $('h-play').onclick = function () { openPlayer(WORK[curFilm]); };
+  still.onclick = function () { openPlayer(WORK[curFilm]); };
+  setFilm(0);
+
+  // ---------- Pointer
+  var cur = $('cursor'), curLbl = $('cursor-label'), mx = -9999, my = -9999, cx = 0, cy = 0, overSun = false, sun = S(0, 0, 1);
+  addEventListener('pointermove', function (e) { mx = e.clientX; my = e.clientY; }, { passive: true });
+  if (fine) {
+    document.body.classList.add('has-cursor');
+    document.addEventListener('pointerover', function (e) {
+      var el = e.target.closest && e.target.closest('[data-cursor]');
+      if (el) { curLbl.textContent = el.getAttribute('data-cursor'); cur.classList.add('big'); } else if (!overSun) cur.classList.remove('big');
+    });
+  }
+  function filmVisible() { return U ? U.uFilm.value > 0.6 : false; }
+  addEventListener('click', function (e) {
+    if (e.target.closest('a,button') || !player.hidden || !gl) return;
+    if (Math.hypot(e.clientX - sun.x, e.clientY - sun.y) < sun.r && filmVisible()) openPlayer(WORK[curFilm]);
+  });
+
+  // ---------- Loop
+  var INTRO_MODE = 'B'; // A: eclipse and diamond ring · B: film burning · AB: both
+  var INTRO = { I: 1, ecl: INTRO_MODE === 'B' ? 0 : 1, ring: 0, reel: 0, burn: 0, strip: INTRO_MODE === 'B' ? 1 : 0, burnF: 0, hot: 0 };
+  var clock = gl ? new THREE.Clock() : null, time = 0, flareV = 0;
+  function frame() {
+    var dt = clock ? Math.min(clock.getDelta(), 0.05) : 0.016; time += dt;
+    readScroll();
+    var day = 0.08 * st.hero + 0.54 * st.work + 0.10 * sstep(0, 1, st.clients) + 0.14 * sstep(0, 1, st.about) + 0.14 * sstep(0, 1, st.contact);
+    var hour = pw(CLOCK, day);
+    clockEl.textContent = hhmm(hour); clockLbl.textContent = partOfDay(hour);
+    var sk = skyAt(day);
+    if (INTRO.I > 0) { var NT = [0.03, 0.012, 0.03], NB = [0.09, 0.035, 0.075]; sk = [[0, 1, 2].map(function (j) { return lerp(sk[0][j], NT[j], INTRO.I); }), [0, 1, 2].map(function (j) { return lerp(sk[1][j], NB[j], INTRO.I); })]; }
+    var lum = (0.299 * (sk[0][0] + sk[1][0]) + 0.587 * (sk[0][1] + sk[1][1]) + 0.114 * (sk[0][2] + sk[1][2])) / 2;
+    var dark = lum < 0.5;
+    if (dark !== isDark) { isDark = dark; document.documentElement.classList.toggle('dark', dark); }
+    document.body.style.background = 'rgb(' + sk[1].map(function (v) { return Math.round(v * 255); }).join(',') + ')';
+
+    sun = sunAt();
+    if (INTRO.I > 0) sun = mixS(sun, S(W * 0.5, H * 0.48, small ? W * 0.34 : Math.min(W, H) * 0.22), sstep(0, 1, INTRO.I));
+    var wpos = st.work * (WORK.length - 1), fi = Math.floor(wpos), ff = wpos - fi;
+    if (fi >= WORK.length - 1) { fi = WORK.length - 2; ff = 1; }
+    var mixE = sstep(0.3, 0.7, ff);
+    setFilm(mixE > 0.5 ? fi + 1 : fi);
+
+    // the sundial follows the sun while the films play; its shadow turns with the hour
+    var dialOn = sstep(0.6, 1, st.hero) * (1 - sstep(0, 0.2, st.clients));
+    var ds = sun.r * 2.5;
+    dial.style.width = dial.style.height = ds + 'px';
+    dial.style.opacity = dialOn * (small ? 0.7 : 1);
+    dial.style.transform = 'translate(' + (sun.x - ds / 2) + 'px,' + (sun.y - ds / 2) + 'px) rotate(' + (-st.work * 160 + time * (reduce ? 0 : 2)) + 'deg)';
+    gnomon.setAttribute('transform', 'rotate(' + ((hour - 6) / 12 * 360 + st.work * 160) + ')');
+
+    // client names radiate from the sun at golden hour
+    var rayOn = sstep(0.05, 0.3, st.clients) * (1 - sstep(0.75, 0.95, st.clients));
+    rays.style.opacity = rayOn;
+    if (rayOn > 0) {
+      rays.style.transform = 'translate(' + sun.x + 'px,' + sun.y + 'px)';
+      var spin = st.clients * 120;
+      rayEls.forEach(function (el, k) {
+        var a = k / rayEls.length * 360 + spin, flip = Math.cos(a * Math.PI / 180) < 0;
+        var reach = sun.r * 1.35 + (1 - rayOn) * 60 + Math.sin(time * 0.8 + k) * 4;
+        el.style.transform = 'rotate(' + a + 'deg) translateX(' + reach + 'px)' + (flip ? ' rotate(180deg) translateX(-100%)' : '');
+      });
+    }
+
+    cx = lerp(cx, mx, 0.3); cy = lerp(cy, my, 0.3);
+    cur.style.transform = 'translate(' + cx + 'px,' + cy + 'px)';
+    var nowOver = fine && player.hidden && Math.hypot(mx - sun.x, my - sun.y) < sun.r && filmVisible();
+    if (nowOver !== overSun) {
+      overSun = nowOver;
+      if (overSun) { curLbl.textContent = 'Play'; cur.classList.add('big'); } else cur.classList.remove('big');
+    }
+
+    if (gl) {
+      var dpr = renderer.getPixelRatio();
+      U.uTime.value = reduce ? 10 : time;
+      U.uSun.value.set(sun.x * dpr, (H - sun.y) * dpr);
+      U.uRad.value = sun.r * dpr;
+      U.uTop.value.setRGB(sk[0][0], sk[0][1], sk[0][2]);
+      U.uBot.value.setRGB(sk[1][0], sk[1][1], sk[1][2]);
+      U.uTexA.value = texs[fi]; U.uTexB.value = texs[fi + 1];
+      U.uMix.value = mixE;
+      U.uFilm.value = sstep(0.55, 1, st.hero) * (1 - sstep(0, 0.25, st.clients));
+      U.uEclipse.value = Math.max(sstep(0.15, 0.75, st.contact), INTRO.ecl);
+      U.uRing.value = INTRO.ring; U.uReel.value = INTRO.reel; U.uBurn.value = INTRO.burn; U.uStrip.value = INTRO.strip; U.uBurnF.value = INTRO.burnF; U.uHot.value = INTRO.hot;
+      if (INTRO.reel > 0.001) { var ri = Math.floor(time * 6) % texs.length; U.uTexA.value = texs[ri]; }
+      flareV = lerp(flareV, Math.sin(mixE * Math.PI) + Math.abs(st.vel), 0.1);
+      U.uFlare.value = flareV;
+      U.uVel.value = reduce ? 0 : st.vel;
+      U.uHover.value = lerp(U.uHover.value, overSun ? 1 : 0, 0.08);
+      U.uMouse.value.set(mx * dpr, (H - my) * dpr);
+      renderer.render(scene, camera);
+    }
+    requestAnimationFrame(frame);
+  }
+
+  function resize() {
+    W = innerWidth; H = innerHeight; small = W < 760;
+    if (!gl) return;
+    renderer.setSize(W, H, false);
+    var dpr = renderer.getPixelRatio();
+    U.uRes.value.set(W * dpr, H * dpr);
+  }
+  addEventListener('resize', resize); resize();
+
+  // ---------- Intro: the day opens in a total eclipse over Doha. While the page loads, his films flicker inside
+  // the black moon like a projector in the dark. Then first light breaks out as a diamond ring, burns through the
+  // film, and the sun rises into the morning sky at its place on the first screen. The site ends in an eclipse
+  // too, so the day is bookended.
+  var dawn = $('dawn'), dLbl = $('dawn-lbl'), dPct = $('dawn-pct');
+  dawn.classList.remove('fallback');
+  var booted = false, target = 0, shownP = 0, t0 = performance.now(), lastT = t0, leaving = false;
+  if (INTRO_MODE === 'B') { dLbl.textContent = '35mm · Doha · 04:30'; INTRO.reel = 1; }
+  else if (INTRO_MODE === 'AB' && gl && window.gsap && !reduce) gsap.fromTo(INTRO, { reel: 0 }, { reel: 1, duration: 1.2, delay: 0.4, ease: 'power2.out' });
+  function loadLoop() {
+    var nowT = performance.now(), ldt = Math.min(0.1, (nowT - lastT) / 1000); lastT = nowT;
+    target = Math.max(target, Math.min(0.9, (nowT - t0) / 2600));
+    shownP += (target - shownP) * (1 - Math.exp(-ldt * 4.5)); if (target >= 1 && shownP > 0.99) shownP = 1;
+    dPct.textContent = INTRO_MODE === 'A' ? 'Totality ' + pad(Math.round(lerp(100, 99, shownP)), 3) + '%' : 'Frame ' + pad(Math.round(shownP * 24 * 4), 3);
+    if (shownP >= 1) { done(); return; }
+    requestAnimationFrame(loadLoop);
+  }
+  loadLoop();
+  function done() {
+    if (leaving) return; leaving = true;
+    if (!gl || !window.gsap || reduce) { INTRO.I = 0; INTRO.ecl = 0; INTRO.reel = 0; INTRO.strip = 0; dawn.hidden = true; document.body.classList.remove('intro'); heroIn(); reveals(); return; }
+    if (INTRO_MODE === 'B') {
+      var tb = gsap.timeline({ delay: 0.5, onComplete: function () { dawn.hidden = true; } });
+      tb.add(function () { dLbl.textContent = 'Sunrise · Doha · 05:31'; }, 0)
+        .to(INTRO, { hot: 1, duration: 0.7, ease: 'power2.in' }, 0)
+        .to(INTRO, { burnF: 1, duration: 2.0, ease: 'power2.in' }, 0.45)
+        .to('#dawn .row', { opacity: 0, duration: 0.5 }, 0.8)
+        .to(INTRO, { I: 0, duration: 2.1, ease: 'power3.inOut' }, 1.7)
+        .add(function () { INTRO.strip = 0; INTRO.reel = 0; INTRO.hot = 0; }, 2.5)
+        .add(function () { document.body.classList.remove('intro'); heroIn(); reveals(); }, 2.6);
+      return;
+    }
+    var tl = gsap.timeline({ delay: 0.6, onComplete: function () { dawn.hidden = true; } });
+    tl.add(function () { dLbl.textContent = 'First light · Doha · 05:31'; }, 0)
+      .to(INTRO, { ring: 1, duration: 0.4, ease: 'power2.out' }, 0)
+      .to(INTRO, { burn: INTRO_MODE === 'A' ? 0 : 1, duration: 1.5, ease: 'power2.in' }, 0.25)
+      .to('#dawn .row', { opacity: 0, duration: 0.5 }, 0.5)
+      .to(INTRO, { ring: 0, duration: 1.2, ease: 'power2.in' }, 0.9)
+      .to(INTRO, { ecl: 0, reel: 0, duration: 1.0, ease: 'power2.out' }, 1.6)
+      .to(INTRO, { I: 0, duration: 2.1, ease: 'power3.inOut' }, 1.5)
+      .add(function () { document.body.classList.remove('intro'); heroIn(); reveals(); }, 2.4);
+  }
+  function heroIn() {
+    if (!window.gsap || reduce) return;
+    gsap.from('.word', { yPercent: 30, opacity: 0, duration: 1.4, ease: 'power3.out' });
+    gsap.from('.entry > *, .hero-foot > *', { y: 24, opacity: 0, duration: 1.1, stagger: 0.08, ease: 'power3.out', delay: 0.25 });
+  }
+  function boot() { if (booted) return; booted = true; target = 1; }
+  var fontWait = document.fonts && document.fonts.load ? Promise.all(['800 100px Syne', '700 40px "Reem Kufi"', '400 16px "DM Mono"'].map(function (f, i) { return document.fonts.load(f, ['Shams', 'شمس', '06:00'][i]); })) : Promise.resolve();
+  Promise.all([new Promise(function (r) { setTimeout(r, reduce ? 100 : 2600); }), Promise.race([fontWait, new Promise(function (r) { setTimeout(r, 3500); })])]).then(function () {
+    if (gl) texs.forEach(function (t, i) { t.dispose(); texs[i] = posterTex(WORK[i]); });
+    boot();
+  }, boot);
+  setTimeout(boot, 5500);
+
+  // ---------- Text reveals
+  function reveals() {
+    if (!window.gsap || !window.ScrollTrigger || reduce) return;
+    gsap.registerPlugin(ScrollTrigger);
+    gsap.to('.word', { xPercent: -8, ease: 'none', scrollTrigger: { trigger: '#hero', start: 'top top', end: 'bottom top', scrub: true } });
+    gsap.to('.hero-pin', { opacity: 0, ease: 'none', scrollTrigger: { trigger: '#hero', start: '35% top', end: '75% top', scrub: true } });
+    gsap.from('.about-in > *', { y: 40, opacity: 0, stagger: 0.08, duration: 1.1, ease: 'power3.out', scrollTrigger: { trigger: '#about', start: 'top 30%' } });
+    gsap.from('.contact-pin > *', { y: 40, opacity: 0, stagger: 0.08, duration: 1.1, ease: 'power3.out', scrollTrigger: { trigger: '#contact', start: 'top 20%' } });
+  }
+
+  // ---------- Small things
+  function tick() { try { $('doha').textContent = 'Doha ' + new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Qatar', hour: '2-digit', minute: '2-digit' }).format(new Date()); } catch (e) {} }
+  tick(); setInterval(tick, 20000);
+  var cb = $('copy-email');
+  cb.onclick = function () {
+    var el = $('email');
+    function sel() { var r = document.createRange(); r.selectNodeContents(el); var s = getSelection(); s.removeAllRanges(); s.addRange(r); cb.textContent = 'Selected'; }
+    try { navigator.clipboard.writeText(el.textContent).then(function () { cb.textContent = 'Copied'; setTimeout(function () { cb.textContent = 'Copy address'; }, 1600); }, sel); } catch (e) { sel(); }
+  };
+
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

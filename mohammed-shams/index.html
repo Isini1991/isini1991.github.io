@@ -474,7 +474,7 @@ html.no-gl .still { display: block; width: min(60vw, 420px); aspect-ratio: 1; bo
     'precision highp float;',
     'uniform vec2 uRes; uniform float uTime; uniform vec2 uSun; uniform float uRad;',
     'uniform vec3 uTop; uniform vec3 uBot; uniform sampler2D uTexA; uniform sampler2D uTexB;',
-    'uniform float uMix; uniform float uRing; uniform float uReel; uniform float uBurn; uniform float uFilm; uniform float uHover; uniform float uEclipse; uniform float uFlare; uniform vec2 uMouse; uniform float uVel;',
+    'uniform float uMix; uniform float uStrip; uniform float uBurnF; uniform float uHot; uniform float uRing; uniform float uReel; uniform float uBurn; uniform float uFilm; uniform float uHover; uniform float uEclipse; uniform float uFlare; uniform vec2 uMouse; uniform float uVel;',
     'varying vec2 vUv;',
     'float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }',
     'float noise(vec2 p){ vec2 i = floor(p), f = fract(p); vec2 u = f * f * (3.0 - 2.0 * f);',
@@ -540,6 +540,35 @@ html.no-gl .still { display: block; width: min(60vw, 420px); aspect-ratio: 1; bo
     '    float star = pow(max(0.0, cos(atan(dd.y, dd.x) * 3.0)), 40.0) * exp(-r * 2.5);',
     '    col += vec3(1.0, 0.95, 0.86) * (core + streak * 1.3 + star) * uRing;',
     '    col += vec3(1.0, 0.9, 0.75) * 0.2 * uRing * uRing; }',
+    // intro B: a strip of 35mm film in the dark, his films flickering in the gate, until sunlight burns through
+    '  if (uStrip > 0.001) {',
+    '    float fh = min(uRes.y * 0.56, uRes.x * 0.86 * 9.0 / 16.0); float fw = fh * 16.0 / 9.0; float band = fh * 0.17;',
+    '    vec2 c = uRes * 0.5 + vec2(0.0, sin(uTime * 31.0) * uRes.y * 0.0012);',
+    '    vec2 f = (px - c) / vec2(fw, fh) + 0.5;',
+    '    float yb = abs(px.y - c.y) - fh * 0.5;',
+    '    vec3 film = vec3(0.015, 0.01, 0.015);',
+    '    float inStrip = step(yb, band);',
+    '    film = mix(film, vec3(0.13, 0.075, 0.03), inStrip);',
+    '    float hx = fract((px.x - c.x) / (fw / 9.0) + uTime * 0.5);',
+    '    float hole = step(0.32, hx) * step(hx, 0.68) * step(band * 0.32, yb) * step(yb, band * 0.72);',
+    '    film = mix(film, vec3(0.01), hole * inStrip);',
+    '    float inF = step(0.0, f.x) * step(f.x, 1.0) * step(0.0, f.y) * step(f.y, 1.0);',
+    '    vec3 img = texture2D(uTexA, f).rgb * (0.78 + 0.22 * hash(vec2(floor(uTime * 24.0), 7.0)));',
+    '    img += 0.08 * step(0.997, hash(vec2(floor(px.x / 2.0), floor(uTime * 24.0)))) - 0.05 * step(0.998, hash(vec2(floor(px.y / 3.0), floor(uTime * 12.0))));',
+    '    img = mix(img, img * vec3(1.05, 0.95, 0.8), 0.4);',
+    '    film = mix(film, img, inF);',
+    '    film += (hash(px * 0.5 + floor(uTime * 24.0)) - 0.5) * 0.06;',
+    '    film += vec3(1.0, 0.7, 0.4) * exp(-length(px - uSun) / (uRes.y * 0.06)) * uHot * 1.4;',
+    '    float bd = length(px - uSun) / max(uRes.x, uRes.y) + (fbm(px / uRes.y * 4.0 + uTime * 0.5) - 0.5) * 0.12;',
+    '    float br = uBurnF * 1.25;',
+    '    float on = step(0.001, uBurnF);',
+    '    float burnt = smoothstep(br, br - 0.008, bd) * on;',
+    '    float edge = smoothstep(br - 0.045, br, bd) * smoothstep(br + 0.01, br, bd) * on;',
+    '    float scorch = smoothstep(br + 0.14, br, bd) * on;',
+    '    film = mix(film, film * vec3(0.55, 0.3, 0.12), scorch * 0.85);',
+    '    col = mix(col, film, uStrip * (1.0 - burnt));',
+    '    col += vec3(1.0, 0.5, 0.14) * edge * 3.0 * uStrip;',
+    '  }',
     // a little dither so the gradients never band
     '  col += (hash(px + uTime) - 0.5) / 255.0 * 2.0;',
     '  gl_FragColor = vec4(col, 1.0);',
@@ -573,7 +602,7 @@ html.no-gl .still { display: block; width: min(60vw, 420px); aspect-ratio: 1; bo
     U = {
       uRes: { value: new THREE.Vector2(1, 1) }, uTime: { value: 0 }, uSun: { value: new THREE.Vector2(0, 0) }, uRad: { value: 100 },
       uTop: { value: new THREE.Color() }, uBot: { value: new THREE.Color() }, uTexA: { value: texs[0] }, uTexB: { value: texs[1] },
-      uMix: { value: 0 }, uRing: { value: 0 }, uReel: { value: 0 }, uBurn: { value: 0 }, uFilm: { value: 0 }, uHover: { value: 0 }, uEclipse: { value: 0 }, uFlare: { value: 0 }, uMouse: { value: new THREE.Vector2(-9999, -9999) }, uVel: { value: 0 }
+      uMix: { value: 0 }, uStrip: { value: 0 }, uBurnF: { value: 0 }, uHot: { value: 0 }, uRing: { value: 0 }, uReel: { value: 0 }, uBurn: { value: 0 }, uFilm: { value: 0 }, uHover: { value: 0 }, uEclipse: { value: 0 }, uFlare: { value: 0 }, uMouse: { value: new THREE.Vector2(-9999, -9999) }, uVel: { value: 0 }
     };
     var mat = new THREE.ShaderMaterial({ uniforms: U, vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }', fragmentShader: FS, depthTest: false, depthWrite: false });
     scene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), mat));
@@ -642,7 +671,8 @@ html.no-gl .still { display: block; width: min(60vw, 420px); aspect-ratio: 1; bo
   });
 
   // ---------- Loop
-  var INTRO = { I: 1, ecl: 1, ring: 0, reel: 0, burn: 0 };
+  var INTRO_MODE = 'AB'; // A: eclipse and diamond ring · B: film burning · AB: both
+  var INTRO = { I: 1, ecl: INTRO_MODE === 'B' ? 0 : 1, ring: 0, reel: 0, burn: 0, strip: INTRO_MODE === 'B' ? 1 : 0, burnF: 0, hot: 0 };
   var clock = gl ? new THREE.Clock() : null, time = 0, flareV = 0;
   function frame() {
     var dt = clock ? Math.min(clock.getDelta(), 0.05) : 0.016; time += dt;
@@ -704,7 +734,7 @@ html.no-gl .still { display: block; width: min(60vw, 420px); aspect-ratio: 1; bo
       U.uMix.value = mixE;
       U.uFilm.value = sstep(0.55, 1, st.hero) * (1 - sstep(0, 0.25, st.clients));
       U.uEclipse.value = Math.max(sstep(0.15, 0.75, st.contact), INTRO.ecl);
-      U.uRing.value = INTRO.ring; U.uReel.value = INTRO.reel; U.uBurn.value = INTRO.burn;
+      U.uRing.value = INTRO.ring; U.uReel.value = INTRO.reel; U.uBurn.value = INTRO.burn; U.uStrip.value = INTRO.strip; U.uBurnF.value = INTRO.burnF; U.uHot.value = INTRO.hot;
       if (INTRO.reel > 0.001) { var ri = Math.floor(time * 6) % texs.length; U.uTexA.value = texs[ri]; }
       flareV = lerp(flareV, Math.sin(mixE * Math.PI) + Math.abs(st.vel), 0.1);
       U.uFlare.value = flareV;
@@ -732,23 +762,35 @@ html.no-gl .still { display: block; width: min(60vw, 420px); aspect-ratio: 1; bo
   var dawn = $('dawn'), dLbl = $('dawn-lbl'), dPct = $('dawn-pct');
   dawn.classList.remove('fallback');
   var booted = false, target = 0, shownP = 0, t0 = performance.now(), lastT = t0, leaving = false;
-  if (gl && window.gsap && !reduce) gsap.fromTo(INTRO, { reel: 0 }, { reel: 1, duration: 1.2, delay: 0.4, ease: 'power2.out' });
+  if (INTRO_MODE === 'B') { dLbl.textContent = '35mm · Doha · 04:30'; INTRO.reel = 1; }
+  else if (INTRO_MODE === 'AB' && gl && window.gsap && !reduce) gsap.fromTo(INTRO, { reel: 0 }, { reel: 1, duration: 1.2, delay: 0.4, ease: 'power2.out' });
   function loadLoop() {
     var nowT = performance.now(), ldt = Math.min(0.1, (nowT - lastT) / 1000); lastT = nowT;
     target = Math.max(target, Math.min(0.9, (nowT - t0) / 2600));
     shownP += (target - shownP) * (1 - Math.exp(-ldt * 4.5)); if (target >= 1 && shownP > 0.99) shownP = 1;
-    dPct.textContent = 'Frame ' + pad(Math.round(shownP * 24 * 4), 3);
+    dPct.textContent = INTRO_MODE === 'A' ? 'Totality ' + pad(Math.round(lerp(100, 99, shownP)), 3) + '%' : 'Frame ' + pad(Math.round(shownP * 24 * 4), 3);
     if (shownP >= 1) { done(); return; }
     requestAnimationFrame(loadLoop);
   }
   loadLoop();
   function done() {
     if (leaving) return; leaving = true;
-    if (!gl || !window.gsap || reduce) { INTRO.I = 0; INTRO.ecl = 0; INTRO.reel = 0; dawn.hidden = true; document.body.classList.remove('intro'); heroIn(); reveals(); return; }
+    if (!gl || !window.gsap || reduce) { INTRO.I = 0; INTRO.ecl = 0; INTRO.reel = 0; INTRO.strip = 0; dawn.hidden = true; document.body.classList.remove('intro'); heroIn(); reveals(); return; }
+    if (INTRO_MODE === 'B') {
+      var tb = gsap.timeline({ delay: 0.5, onComplete: function () { dawn.hidden = true; } });
+      tb.add(function () { dLbl.textContent = 'Sunrise · Doha · 05:31'; }, 0)
+        .to(INTRO, { hot: 1, duration: 0.7, ease: 'power2.in' }, 0)
+        .to(INTRO, { burnF: 1, duration: 2.0, ease: 'power2.in' }, 0.45)
+        .to('#dawn .row', { opacity: 0, duration: 0.5 }, 0.8)
+        .to(INTRO, { I: 0, duration: 2.1, ease: 'power3.inOut' }, 1.7)
+        .add(function () { INTRO.strip = 0; INTRO.reel = 0; INTRO.hot = 0; }, 2.5)
+        .add(function () { document.body.classList.remove('intro'); heroIn(); reveals(); }, 2.6);
+      return;
+    }
     var tl = gsap.timeline({ delay: 0.6, onComplete: function () { dawn.hidden = true; } });
     tl.add(function () { dLbl.textContent = 'First light · Doha · 05:31'; }, 0)
       .to(INTRO, { ring: 1, duration: 0.4, ease: 'power2.out' }, 0)
-      .to(INTRO, { burn: 1, duration: 1.5, ease: 'power2.in' }, 0.25)
+      .to(INTRO, { burn: INTRO_MODE === 'A' ? 0 : 1, duration: 1.5, ease: 'power2.in' }, 0.25)
       .to('#dawn .row', { opacity: 0, duration: 0.5 }, 0.5)
       .to(INTRO, { ring: 0, duration: 1.2, ease: 'power2.in' }, 0.9)
       .to(INTRO, { ecl: 0, reel: 0, duration: 1.0, ease: 'power2.out' }, 1.6)
