@@ -51,16 +51,12 @@ button { font: inherit; color: inherit; }
 html.no-gl #sky { display: none; }
 html.no-gl body { background: linear-gradient(#bcd8ea, #faf1e2) fixed; }
 
-/* Sunrise: the loader. The clock runs to Doha's sunrise while the sun clears the horizon. */
-.dawn { position: fixed; inset: 0; z-index: 90; background: linear-gradient(#1d1533 0%, #3b2950 55%, #a35a5e 100%); color: #f6eadb; overflow: hidden;
+/* Intro: fine sun dust drifts in the dark before dawn, gathers into شمس, then pours into the sun on the first screen. */
+.dawn { position: fixed; inset: 0; z-index: 90; color: #f6eadb; overflow: hidden;
   display: grid; grid-template-rows: auto 1fr auto; padding: calc(env(safe-area-inset-top, 0px) + 22px) var(--gr) calc(env(safe-area-inset-bottom, 0px) + 22px) var(--gl); }
+.dawn .bg { position: absolute; inset: 0; background: radial-gradient(120% 80% at 50% 100%, #3a1f3d 0%, #160c22 55%, #0b0612 100%); }
+.dawn canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 .dawn .row { display: flex; justify-content: space-between; gap: 16px; position: relative; z-index: 2; }
-.dawn .horizon { position: absolute; left: 0; right: 0; top: 62%; height: 1px; background: rgba(246,234,219,.5); z-index: 2; }
-.dawn .ball { position: absolute; left: 50%; top: 62%; width: 120px; height: 120px; margin-left: -60px; border-radius: 50%;
-  background: radial-gradient(circle at 50% 45%, #fff6d8 0%, #ffcf6e 45%, #ff8a3d 100%); box-shadow: 0 0 80px 30px rgba(255,160,80,.35); transform: translateY(70px); }
-.dawn .sea { position: absolute; left: 0; right: 0; top: 62%; bottom: 0; background: linear-gradient(#2a1d3d, #120c20); z-index: 1; }
-.dawn .clock { position: absolute; left: 0; right: 0; top: 62%; margin-top: 28px; text-align: center; z-index: 2; display: grid; gap: 6px; }
-.dawn .clock b { font: 500 clamp(3.2rem, 10vw, 7rem)/1 var(--f-display); letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
 .dawn.fallback { animation: gone .8s ease 7s forwards; }
 @keyframes gone { to { opacity: 0; visibility: hidden; } }
 
@@ -209,13 +205,11 @@ html.no-gl .still { display: block; width: min(60vw, 420px); aspect-ratio: 1; bo
 <canvas id="sky" aria-hidden="true"></canvas>
 
 <div class="dawn fallback" id="dawn" aria-hidden="true">
+  <div class="bg" id="dawn-bg"></div>
+  <canvas id="dust"></canvas>
   <div class="row lbl"><span>Mohammed Shams · Director</span><span>Doha · 25.29°N 51.53°E</span></div>
-  <div class="sea"></div>
-  <div class="ball" id="ball"></div>
-  <div class="horizon"></div>
-  <div class="clock"><b id="dawn-clock">04:30</b><span class="lbl" id="dawn-lbl">Waiting for sunrise</span></div>
   <div></div>
-  <div class="row lbl"><span class="ar" style="font-size:1rem">شمس</span><span id="dawn-pct">000</span></div>
+  <div class="row lbl"><span id="dawn-lbl">Before sunrise · 04:30</span><span id="dawn-pct">000</span></div>
 </div>
 
 <div class="cursor" id="cursor" aria-hidden="true"><span id="cursor-label">Play</span></div>
@@ -706,34 +700,125 @@ html.no-gl .still { display: block; width: min(60vw, 420px); aspect-ratio: 1; bo
   }
   addEventListener('resize', resize); resize();
 
-  // ---------- Sunrise loader: the clock runs from 04:30 to Doha's sunrise as the page loads
-  var dawn = $('dawn'), ball = $('ball'), dClock = $('dawn-clock'), dLbl = $('dawn-lbl'), dPct = $('dawn-pct');
+  // ---------- Intro: fine sun dust. It drifts in the dark, gathers into شمس, then pours into the sun on the first
+  // screen, landing exactly where the real sun is drawn, so the hand-off is seamless.
+  var dawn = $('dawn'), dawnBg = $('dawn-bg'), dLbl = $('dawn-lbl'), dPct = $('dawn-pct');
   dawn.classList.remove('fallback');
-  var booted = false, target = 0, shownP = 0, t0 = performance.now(), lastT = t0;
+  var DN = innerWidth < 760 ? 6000 : 14000, dust = null;
+  try {
+    if (!window.THREE || !window.gsap || reduce) throw new Error('no dust');
+    var dr = new THREE.WebGLRenderer({ canvas: $('dust'), alpha: true, antialias: false });
+    dr.setPixelRatio(Math.min(devicePixelRatio || 1, 2)); dr.setClearColor(0x000000, 0);
+    var dScene = new THREE.Scene(), dCam = new THREE.Camera();
+    var dg = new THREE.BufferGeometry(), aS = new Float32Array(DN * 2), aT = new Float32Array(DN * 2), aD = new Float32Array(DN * 2), aR = new Float32Array(DN);
+    for (var k = 0; k < DN; k++) { aS[k * 2] = Math.random() * innerWidth; aS[k * 2 + 1] = Math.random() * innerHeight; aR[k] = Math.random(); }
+    aT.set(aS); aD.set(aS);
+    dg.setAttribute('position', new THREE.BufferAttribute(new Float32Array(DN * 3), 3));
+    dg.setAttribute('aS', new THREE.BufferAttribute(aS, 2));
+    dg.setAttribute('aT', new THREE.BufferAttribute(aT, 2));
+    dg.setAttribute('aD', new THREE.BufferAttribute(aD, 2));
+    dg.setAttribute('aR', new THREE.BufferAttribute(aR, 1));
+    var DU = { uA: { value: 0 }, uB: { value: 0 }, uTime: { value: 0 }, uAlpha: { value: 1 }, uSize: { value: 2.0 * dr.getPixelRatio() }, uRes: { value: new THREE.Vector2(innerWidth, innerHeight) }, uMouse: { value: new THREE.Vector2(-999, -999) } };
+    var dm = new THREE.ShaderMaterial({
+      uniforms: DU, transparent: true, depthTest: false, depthWrite: false, blending: THREE.AdditiveBlending,
+      vertexShader: [
+        'attribute vec2 aS; attribute vec2 aT; attribute vec2 aD; attribute float aR;',
+        'uniform float uA; uniform float uB; uniform float uTime; uniform float uSize; uniform vec2 uRes; uniform vec2 uMouse;',
+        'varying float vR; varying float vB;',
+        'void main(){',
+        '  float t = uTime * (0.15 + aR * 0.35);',
+        '  vec2 s = aS + vec2(sin(t + aR * 50.0), cos(t * 0.8 + aR * 31.0)) * 36.0;',
+        '  s.y = mod(s.y - uTime * (6.0 + aR * 14.0), uRes.y + 40.0) - 20.0;',
+        '  float ea = smoothstep(0.0, 1.0, clamp(uA * 1.5 - aR * 0.5, 0.0, 1.0));',
+        '  vec2 jit = vec2(sin(uTime * 1.3 + aR * 90.0), cos(uTime * 1.1 + aR * 70.0)) * 1.4;',
+        '  vec2 p = mix(s, aT + jit, ea);',
+        '  float eb = smoothstep(0.0, 1.0, clamp(uB * 1.4 - aR * 0.4, 0.0, 1.0));',
+        '  vec2 dir = aD - p; vec2 perp = vec2(-dir.y, dir.x);',
+        '  p = mix(p, aD, eb) + perp * sin(eb * 3.14159) * 0.35 * (aR - 0.5);',
+        '  vec2 d = p - uMouse; float l = length(d);',
+        '  p += d / max(l, 1.0) * smoothstep(110.0, 0.0, l) * 34.0 * (1.0 - eb);',
+        '  gl_Position = vec4(p.x / uRes.x * 2.0 - 1.0, 1.0 - p.y / uRes.y * 2.0, 0.0, 1.0);',
+        '  gl_PointSize = uSize * (0.5 + aR * 0.9) * (1.0 + ea * 0.15);',
+        '  vR = aR; vB = eb;',
+        '}'].join('\n'),
+      fragmentShader: [
+        'uniform float uAlpha; varying float vR; varying float vB;',
+        'void main(){',
+        '  float d = length(gl_PointCoord - 0.5); if (d > 0.5) discard;',
+        '  vec3 col = mix(vec3(1.0, 0.9, 0.7), vec3(1.0, 0.62, 0.25), vR);',
+        '  col = mix(col, vec3(1.0, 0.95, 0.82), vB * 0.6);',
+        '  gl_FragColor = vec4(col, smoothstep(0.5, 0.0, d) * uAlpha * (0.3 + 0.7 * vR));',
+        '}'].join('\n')
+    });
+    var pts = new THREE.Points(dg, dm); pts.frustumCulled = false; dScene.add(pts);
+    dr.setSize(innerWidth, innerHeight, false);
+    dust = { r: dr, s: dScene, c: dCam, u: DU, g: dg, aT: aT, aD: aD, on: true };
+    dawn.addEventListener('pointermove', function (e) { DU.uMouse.value.set(e.clientX, e.clientY); });
+    (function dl(tt) { if (!dust.on) return; DU.uTime.value = tt / 1000; dr.render(dScene, dCam); requestAnimationFrame(dl); })(0);
+  } catch (e) { dust = null; }
+
+  // where the dust goes: the word شمس in the middle, then the hero sun's disc
+  function dustTargets() {
+    var w = innerWidth, h = innerHeight, cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+    var x = cv.getContext('2d'), size = Math.min(w * 0.5, h * 0.42);
+    x.font = '700 ' + size + 'px "Reem Kufi", "Noto Kufi Arabic", sans-serif';
+    var mw = x.measureText('شمس').width || 1; if (mw > w * 0.8) { size *= w * 0.8 / mw; x.font = '700 ' + size + 'px "Reem Kufi", "Noto Kufi Arabic", sans-serif'; }
+    x.fillStyle = '#fff'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.direction = 'rtl';
+    x.fillText('شمس', w / 2, h * 0.47);
+    var d = x.getImageData(0, 0, w, h).data, list = [], step = Math.max(2, Math.round(Math.sqrt(w * h / 260000)));
+    for (var yy = 0; yy < h; yy += step) for (var xx = 0; xx < w; xx += step) if (d[(yy * w + xx) * 4 + 3] > 128) list.push(xx, yy);
+    var m = Math.min(w, h), sm = w < 760;
+    var sx = sm ? w * 0.78 : w * 0.8, sy = sm ? h * 1.0 : h * 1.1, sr = sm ? w * 0.5 : m * 0.6;
+    for (var k = 0; k < DN; k++) {
+      var j = list.length ? Math.floor(Math.random() * list.length / 2) * 2 : 0;
+      dust.aT[k * 2] = (list[j] || w / 2) + Math.random() * step; dust.aT[k * 2 + 1] = (list[j + 1] || h / 2) + Math.random() * step;
+      var a = Math.random() * Math.PI * 2, rr = sr * (Math.random() < 0.25 ? 0.97 + Math.random() * 0.06 : Math.sqrt(Math.random()));
+      dust.aD[k * 2] = sx + Math.cos(a) * rr; dust.aD[k * 2 + 1] = sy + Math.sin(a) * rr;
+    }
+    dust.g.attributes.aT.needsUpdate = true; dust.g.attributes.aD.needsUpdate = true;
+  }
+
+  var booted = false, target = 0, shownP = 0, t0 = performance.now(), lastT = t0, gathered = false, leaving = false, gStart = 0;
   function loadLoop() {
     var nowT = performance.now(), ldt = Math.min(0.1, (nowT - lastT) / 1000); lastT = nowT;
     target = Math.max(target, Math.min(0.9, (nowT - t0) / 2400));
     shownP += (target - shownP) * (1 - Math.exp(-ldt * 4.5)); if (target >= 1 && shownP > 0.99) shownP = 1;
-    dClock.textContent = hhmm(lerp(4.5, 5 + 31 / 60, shownP));
-    dLbl.textContent = shownP < 1 ? 'Waiting for sunrise' : 'Sunrise · Doha';
     dPct.textContent = pad(Math.round(shownP * 100), 3);
-    ball.style.transform = 'translateY(' + lerp(70, -80, shownP) + 'px)';
-    if (shownP >= 1) { rise(); return; }
+    dLbl.textContent = 'Before sunrise · ' + hhmm(lerp(4.5, 5 + 31 / 60, shownP));
+    if (shownP >= 1) { done(); return; }
     requestAnimationFrame(loadLoop);
   }
   loadLoop();
-  function rise() {
-    if (window.gsap && !reduce) {
-      var r = ball.getBoundingClientRect(), x = r.left + r.width / 2, y = r.top + r.height / 2;
-      gsap.fromTo(dawn, { clipPath: 'circle(150% at ' + x + 'px ' + y + 'px)' }, { clipPath: 'circle(0% at ' + x + 'px ' + y + 'px)', duration: 1.3, ease: 'expo.inOut', onComplete: function () { dawn.hidden = true; } });
-      gsap.from('.word', { yPercent: 30, opacity: 0, duration: 1.4, ease: 'power3.out', delay: 0.5 });
-      gsap.from('.entry > *, .hero-foot > *', { y: 24, opacity: 0, duration: 1.1, stagger: 0.08, ease: 'power3.out', delay: 0.75 });
-    } else dawn.hidden = true;
-    reveals();
+  function gather() {
+    if (gathered || !dust) return; gathered = true; gStart = performance.now();
+    dustTargets();
+    gsap.to(dust.u.uA, { value: 1, duration: 2.2, ease: 'power2.inOut' });
   }
-  function boot() { if (booted) return; booted = true; target = 1; }
+  function done() {
+    dLbl.textContent = 'Sunrise · Doha · 05:31';
+    if (!dust) { dawn.hidden = true; heroIn(); reveals(); return; }
+    gather();
+      gsap.delayedCall(Math.max(0.6, 3.5 - (performance.now() - gStart) / 1000), leave);
+  }
+  function leave() {
+    if (leaving) return; leaving = true;
+    if (!dust) { dawn.hidden = true; heroIn(); reveals(); return; }
+    var tl = gsap.timeline({ onComplete: function () { dust.on = false; dust.r.dispose(); dawn.hidden = true; } });
+    tl.to(dust.u.uB, { value: 1, duration: 1.7, ease: 'power3.inOut' }, 0)
+      .to('#dawn .row', { opacity: 0, duration: 0.6 }, 0)
+      .to(dawnBg, { opacity: 0, duration: 1.1, ease: 'power2.inOut' }, 0.8)
+      .add(function () { heroIn(); reveals(); }, 1.1)
+      .to(dust.u.uAlpha, { value: 0, duration: 0.9, ease: 'power2.out' }, 1.6);
+  }
+  dawn.addEventListener('click', function () { if (booted && gathered) leave(); });
+  function heroIn() {
+    if (!window.gsap || reduce) return;
+    gsap.from('.word', { yPercent: 30, opacity: 0, duration: 1.4, ease: 'power3.out' });
+    gsap.from('.entry > *, .hero-foot > *', { y: 24, opacity: 0, duration: 1.1, stagger: 0.08, ease: 'power3.out', delay: 0.25 });
+  }
+  function boot() { if (booted) return; booted = true; target = 1; gather(); }
   var fontWait = document.fonts && document.fonts.load ? Promise.all(['800 100px Syne', '700 40px "Reem Kufi"', '400 16px "DM Mono"'].map(function (f, i) { return document.fonts.load(f, ['Shams', 'شمس', '06:00'][i]); })) : Promise.resolve();
-  Promise.all([new Promise(function (r) { setTimeout(r, reduce ? 100 : 2000); }), Promise.race([fontWait, new Promise(function (r) { setTimeout(r, 3500); })])]).then(function () {
+  Promise.all([new Promise(function (r) { setTimeout(r, reduce ? 100 : 1200); }), Promise.race([fontWait, new Promise(function (r) { setTimeout(r, 3500); })])]).then(function () {
     if (gl) texs.forEach(function (t, i) { t.dispose(); texs[i] = posterTex(WORK[i]); });
     boot();
   }, boot);
