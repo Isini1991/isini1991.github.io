@@ -51,13 +51,14 @@ button { font: inherit; color: inherit; }
 html.no-gl #sky { display: none; }
 html.no-gl body { background: linear-gradient(#bcd8ea, #faf1e2) fixed; }
 
-/* Intro: fine sun dust drifts in the dark before dawn, gathers into شمس, then pours into the sun on the first screen. */
-.dawn { position: fixed; inset: 0; z-index: 90; color: #f6eadb; overflow: hidden;
+/* Intro: a total eclipse over Doha. The sky shader draws it; this layer only carries the labels. */
+.dawn { position: fixed; inset: 0; z-index: 90; color: #f6eadb; pointer-events: none;
   display: grid; grid-template-rows: auto 1fr auto; padding: calc(env(safe-area-inset-top, 0px) + 22px) var(--gr) calc(env(safe-area-inset-bottom, 0px) + 22px) var(--gl); }
-.dawn .bg { position: absolute; inset: 0; background: radial-gradient(120% 80% at 50% 100%, #3a1f3d 0%, #160c22 55%, #0b0612 100%); }
-.dawn canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
-.dawn .row { display: flex; justify-content: space-between; gap: 16px; position: relative; z-index: 2; }
+html.no-gl .dawn { background: #0b0612; }
+.dawn .row { display: flex; justify-content: space-between; gap: 16px; }
 .dawn.fallback { animation: gone .8s ease 7s forwards; }
+body.intro header, body.intro main, body.intro .dial { opacity: 0; }
+header, main { transition: opacity 1.2s ease; }
 @keyframes gone { to { opacity: 0; visibility: hidden; } }
 
 /* Chrome */
@@ -200,16 +201,14 @@ html.no-gl .still { display: block; width: min(60vw, 420px); aspect-ratio: 1; bo
 @media (prefers-reduced-motion: reduce) { .cursor::before { animation: none; } }
 </style>
 </head>
-<body>
+<body class="intro">
 
 <canvas id="sky" aria-hidden="true"></canvas>
 
 <div class="dawn fallback" id="dawn" aria-hidden="true">
-  <div class="bg" id="dawn-bg"></div>
-  <canvas id="dust"></canvas>
   <div class="row lbl"><span>Mohammed Shams · Director</span><span>Doha · 25.29°N 51.53°E</span></div>
   <div></div>
-  <div class="row lbl"><span id="dawn-lbl">Before sunrise · 04:30</span><span id="dawn-pct">000</span></div>
+  <div class="row lbl"><span id="dawn-lbl">Total eclipse · Doha · 04:30</span><span id="dawn-pct">Frame 000</span></div>
 </div>
 
 <div class="cursor" id="cursor" aria-hidden="true"><span id="cursor-label">Play</span></div>
@@ -475,7 +474,7 @@ html.no-gl .still { display: block; width: min(60vw, 420px); aspect-ratio: 1; bo
     'precision highp float;',
     'uniform vec2 uRes; uniform float uTime; uniform vec2 uSun; uniform float uRad;',
     'uniform vec3 uTop; uniform vec3 uBot; uniform sampler2D uTexA; uniform sampler2D uTexB;',
-    'uniform float uMix; uniform float uFilm; uniform float uHover; uniform float uEclipse; uniform float uFlare; uniform vec2 uMouse; uniform float uVel;',
+    'uniform float uMix; uniform float uRing; uniform float uReel; uniform float uBurn; uniform float uFilm; uniform float uHover; uniform float uEclipse; uniform float uFlare; uniform vec2 uMouse; uniform float uVel;',
     'varying vec2 vUv;',
     'float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }',
     'float noise(vec2 p){ vec2 i = floor(p), f = fract(p); vec2 u = f * f * (3.0 - 2.0 * f);',
@@ -517,9 +516,30 @@ html.no-gl .still { display: block; width: min(60vw, 420px); aspect-ratio: 1; bo
     '  if (uEclipse > 0.001) {',
     '    vec2 mc = uSun + vec2(mix(2.3, 0.0, uEclipse), mix(-0.5, 0.0, uEclipse)) * uRad;',
     '    float mdd = length(px - mc) / (uRad * 1.005);',
-    '    col = mix(col, uTop * 0.55, smoothstep(1.0, 0.992, mdd));',
-    '    col += vec3(1.0, 0.9, 0.75) * smoothstep(1.03, 1.0, mdd) * smoothstep(0.985, 1.0, mdd) * uEclipse * 1.2;',
+    '    float moon = smoothstep(1.0, 0.992, mdd);',
+    // his films flicker inside the moon, like a projector in the dark
+    '    vec2 mq = (px - mc) / uRad;',
+    '    vec3 reel = texture2D(uTexA, vec2(0.5 + mq.x * 0.5 * 0.5625 * 1.15, 0.5 + mq.y * 0.5 * 1.15)).rgb;',
+    '    reel *= (0.72 + 0.28 * hash(vec2(floor(uTime * 24.0), 3.0))) * 0.6 * smoothstep(1.0, 0.55, mdd);',
+    '    reel += 0.07 * step(0.996, hash(vec2(floor(px.x / 2.0), floor(uTime * 24.0))));',
+    '    vec3 moonCol = mix(uTop * 0.55, reel, uReel);',
+    // first light burns through the film from the diamond point
+    '    vec2 rp = uSun + vec2(-0.977, 0.212) * uRad;',
+    '    float bd = length(px - rp) / uRad + (fbm(px / uRad * 3.0 + uTime * 0.6) - 0.5) * 0.4;',
+    '    float br = uBurn * 2.7;',
+    '    float burnt = smoothstep(br, br - 0.04, bd) * step(0.001, uBurn);',
+    '    float edge = smoothstep(br - 0.14, br, bd) * smoothstep(br + 0.03, br, bd) * step(0.001, uBurn) * (1.0 - uBurn * 0.6);',
+    '    col = mix(col, moonCol, moon * (1.0 - burnt));',
+    '    col += vec3(1.0, 0.55, 0.18) * edge * moon * 2.2;',
+    '    col += vec3(1.0, 0.9, 0.75) * smoothstep(1.03, 1.0, mdd) * smoothstep(0.985, 1.0, mdd) * uEclipse * 1.2 * (1.0 - burnt);',
     '  }',
+    // the diamond ring: first light breaking past the moon's edge
+    '  if (uRing > 0.001) { vec2 rq = uSun + vec2(-0.977, 0.212) * uRad; vec2 dd = px - rq; float r = length(dd) / uRad;',
+    '    float core = exp(-r * 38.0) * 3.0 + exp(-r * 7.0) * 0.7;',
+    '    float streak = exp(-abs(dd.y) / (uRad * 0.012)) * exp(-abs(dd.x) / (uRad * 2.6));',
+    '    float star = pow(max(0.0, cos(atan(dd.y, dd.x) * 3.0)), 40.0) * exp(-r * 2.5);',
+    '    col += vec3(1.0, 0.95, 0.86) * (core + streak * 1.3 + star) * uRing;',
+    '    col += vec3(1.0, 0.9, 0.75) * 0.2 * uRing * uRing; }',
     // a little dither so the gradients never band
     '  col += (hash(px + uTime) - 0.5) / 255.0 * 2.0;',
     '  gl_FragColor = vec4(col, 1.0);',
@@ -553,7 +573,7 @@ html.no-gl .still { display: block; width: min(60vw, 420px); aspect-ratio: 1; bo
     U = {
       uRes: { value: new THREE.Vector2(1, 1) }, uTime: { value: 0 }, uSun: { value: new THREE.Vector2(0, 0) }, uRad: { value: 100 },
       uTop: { value: new THREE.Color() }, uBot: { value: new THREE.Color() }, uTexA: { value: texs[0] }, uTexB: { value: texs[1] },
-      uMix: { value: 0 }, uFilm: { value: 0 }, uHover: { value: 0 }, uEclipse: { value: 0 }, uFlare: { value: 0 }, uMouse: { value: new THREE.Vector2(-9999, -9999) }, uVel: { value: 0 }
+      uMix: { value: 0 }, uRing: { value: 0 }, uReel: { value: 0 }, uBurn: { value: 0 }, uFilm: { value: 0 }, uHover: { value: 0 }, uEclipse: { value: 0 }, uFlare: { value: 0 }, uMouse: { value: new THREE.Vector2(-9999, -9999) }, uVel: { value: 0 }
     };
     var mat = new THREE.ShaderMaterial({ uniforms: U, vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }', fragmentShader: FS, depthTest: false, depthWrite: false });
     scene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), mat));
@@ -622,6 +642,7 @@ html.no-gl .still { display: block; width: min(60vw, 420px); aspect-ratio: 1; bo
   });
 
   // ---------- Loop
+  var INTRO = { I: 1, ecl: 1, ring: 0, reel: 0, burn: 0 };
   var clock = gl ? new THREE.Clock() : null, time = 0, flareV = 0;
   function frame() {
     var dt = clock ? Math.min(clock.getDelta(), 0.05) : 0.016; time += dt;
@@ -630,12 +651,14 @@ html.no-gl .still { display: block; width: min(60vw, 420px); aspect-ratio: 1; bo
     var hour = pw(CLOCK, day);
     clockEl.textContent = hhmm(hour); clockLbl.textContent = partOfDay(hour);
     var sk = skyAt(day);
+    if (INTRO.I > 0) { var NT = [0.03, 0.012, 0.03], NB = [0.09, 0.035, 0.075]; sk = [[0, 1, 2].map(function (j) { return lerp(sk[0][j], NT[j], INTRO.I); }), [0, 1, 2].map(function (j) { return lerp(sk[1][j], NB[j], INTRO.I); })]; }
     var lum = (0.299 * (sk[0][0] + sk[1][0]) + 0.587 * (sk[0][1] + sk[1][1]) + 0.114 * (sk[0][2] + sk[1][2])) / 2;
     var dark = lum < 0.5;
     if (dark !== isDark) { isDark = dark; document.documentElement.classList.toggle('dark', dark); }
     document.body.style.background = 'rgb(' + sk[1].map(function (v) { return Math.round(v * 255); }).join(',') + ')';
 
     sun = sunAt();
+    if (INTRO.I > 0) sun = mixS(sun, S(W * 0.5, H * 0.48, small ? W * 0.34 : Math.min(W, H) * 0.22), sstep(0, 1, INTRO.I));
     var wpos = st.work * (WORK.length - 1), fi = Math.floor(wpos), ff = wpos - fi;
     if (fi >= WORK.length - 1) { fi = WORK.length - 2; ff = 1; }
     var mixE = sstep(0.3, 0.7, ff);
@@ -680,7 +703,9 @@ html.no-gl .still { display: block; width: min(60vw, 420px); aspect-ratio: 1; bo
       U.uTexA.value = texs[fi]; U.uTexB.value = texs[fi + 1];
       U.uMix.value = mixE;
       U.uFilm.value = sstep(0.55, 1, st.hero) * (1 - sstep(0, 0.25, st.clients));
-      U.uEclipse.value = sstep(0.15, 0.75, st.contact);
+      U.uEclipse.value = Math.max(sstep(0.15, 0.75, st.contact), INTRO.ecl);
+      U.uRing.value = INTRO.ring; U.uReel.value = INTRO.reel; U.uBurn.value = INTRO.burn;
+      if (INTRO.reel > 0.001) { var ri = Math.floor(time * 6) % texs.length; U.uTexA.value = texs[ri]; }
       flareV = lerp(flareV, Math.sin(mixE * Math.PI) + Math.abs(st.vel), 0.1);
       U.uFlare.value = flareV;
       U.uVel.value = reduce ? 0 : st.vel;
@@ -700,129 +725,48 @@ html.no-gl .still { display: block; width: min(60vw, 420px); aspect-ratio: 1; bo
   }
   addEventListener('resize', resize); resize();
 
-  // ---------- Intro: fine sun dust. It drifts in the dark, gathers into شمس, then pours into the sun on the first
-  // screen, landing exactly where the real sun is drawn, so the hand-off is seamless.
-  var dawn = $('dawn'), dawnBg = $('dawn-bg'), dLbl = $('dawn-lbl'), dPct = $('dawn-pct');
+  // ---------- Intro: the day opens in a total eclipse over Doha. While the page loads, his films flicker inside
+  // the black moon like a projector in the dark. Then first light breaks out as a diamond ring, burns through the
+  // film, and the sun rises into the morning sky at its place on the first screen. The site ends in an eclipse
+  // too, so the day is bookended.
+  var dawn = $('dawn'), dLbl = $('dawn-lbl'), dPct = $('dawn-pct');
   dawn.classList.remove('fallback');
-  var DN = innerWidth < 760 ? 6000 : 14000, dust = null;
-  try {
-    if (!window.THREE || !window.gsap || reduce) throw new Error('no dust');
-    var dr = new THREE.WebGLRenderer({ canvas: $('dust'), alpha: true, antialias: false });
-    dr.setPixelRatio(Math.min(devicePixelRatio || 1, 2)); dr.setClearColor(0x000000, 0);
-    var dScene = new THREE.Scene(), dCam = new THREE.Camera();
-    var dg = new THREE.BufferGeometry(), aS = new Float32Array(DN * 2), aT = new Float32Array(DN * 2), aD = new Float32Array(DN * 2), aR = new Float32Array(DN);
-    for (var k = 0; k < DN; k++) { aS[k * 2] = Math.random() * innerWidth; aS[k * 2 + 1] = Math.random() * innerHeight; aR[k] = Math.random(); }
-    aT.set(aS); aD.set(aS);
-    dg.setAttribute('position', new THREE.BufferAttribute(new Float32Array(DN * 3), 3));
-    dg.setAttribute('aS', new THREE.BufferAttribute(aS, 2));
-    dg.setAttribute('aT', new THREE.BufferAttribute(aT, 2));
-    dg.setAttribute('aD', new THREE.BufferAttribute(aD, 2));
-    dg.setAttribute('aR', new THREE.BufferAttribute(aR, 1));
-    var DU = { uA: { value: 0 }, uB: { value: 0 }, uTime: { value: 0 }, uAlpha: { value: 1 }, uSize: { value: 2.0 * dr.getPixelRatio() }, uRes: { value: new THREE.Vector2(innerWidth, innerHeight) }, uMouse: { value: new THREE.Vector2(-999, -999) } };
-    var dm = new THREE.ShaderMaterial({
-      uniforms: DU, transparent: true, depthTest: false, depthWrite: false, blending: THREE.AdditiveBlending,
-      vertexShader: [
-        'attribute vec2 aS; attribute vec2 aT; attribute vec2 aD; attribute float aR;',
-        'uniform float uA; uniform float uB; uniform float uTime; uniform float uSize; uniform vec2 uRes; uniform vec2 uMouse;',
-        'varying float vR; varying float vB;',
-        'void main(){',
-        '  float t = uTime * (0.15 + aR * 0.35);',
-        '  vec2 s = aS + vec2(sin(t + aR * 50.0), cos(t * 0.8 + aR * 31.0)) * 36.0;',
-        '  s.y = mod(s.y - uTime * (6.0 + aR * 14.0), uRes.y + 40.0) - 20.0;',
-        '  float ea = smoothstep(0.0, 1.0, clamp(uA * 1.5 - aR * 0.5, 0.0, 1.0));',
-        '  vec2 jit = vec2(sin(uTime * 1.3 + aR * 90.0), cos(uTime * 1.1 + aR * 70.0)) * 1.4;',
-        '  vec2 p = mix(s, aT + jit, ea);',
-        '  float eb = smoothstep(0.0, 1.0, clamp(uB * 1.4 - aR * 0.4, 0.0, 1.0));',
-        '  vec2 dir = aD - p; vec2 perp = vec2(-dir.y, dir.x);',
-        '  p = mix(p, aD, eb) + perp * sin(eb * 3.14159) * 0.35 * (aR - 0.5);',
-        '  vec2 d = p - uMouse; float l = length(d);',
-        '  p += d / max(l, 1.0) * smoothstep(110.0, 0.0, l) * 34.0 * (1.0 - eb);',
-        '  gl_Position = vec4(p.x / uRes.x * 2.0 - 1.0, 1.0 - p.y / uRes.y * 2.0, 0.0, 1.0);',
-        '  gl_PointSize = uSize * (0.5 + aR * 0.9) * (1.0 + ea * 0.15);',
-        '  vR = aR; vB = eb;',
-        '}'].join('\n'),
-      fragmentShader: [
-        'uniform float uAlpha; varying float vR; varying float vB;',
-        'void main(){',
-        '  float d = length(gl_PointCoord - 0.5); if (d > 0.5) discard;',
-        '  vec3 col = mix(vec3(1.0, 0.9, 0.7), vec3(1.0, 0.62, 0.25), vR);',
-        '  col = mix(col, vec3(1.0, 0.95, 0.82), vB * 0.6);',
-        '  gl_FragColor = vec4(col, smoothstep(0.5, 0.0, d) * uAlpha * (0.3 + 0.7 * vR));',
-        '}'].join('\n')
-    });
-    var pts = new THREE.Points(dg, dm); pts.frustumCulled = false; dScene.add(pts);
-    dr.setSize(innerWidth, innerHeight, false);
-    dust = { r: dr, s: dScene, c: dCam, u: DU, g: dg, aT: aT, aD: aD, on: true };
-    dawn.addEventListener('pointermove', function (e) { DU.uMouse.value.set(e.clientX, e.clientY); });
-    (function dl(tt) { if (!dust.on) return; DU.uTime.value = tt / 1000; dr.render(dScene, dCam); requestAnimationFrame(dl); })(0);
-  } catch (e) { dust = null; }
-
-  // where the dust goes: the word شمس in the middle, then the hero sun's disc
-  function dustTargets() {
-    var w = innerWidth, h = innerHeight, cv = document.createElement('canvas'); cv.width = w; cv.height = h;
-    var x = cv.getContext('2d'), size = Math.min(w * 0.5, h * 0.42);
-    x.font = '700 ' + size + 'px "Reem Kufi", "Noto Kufi Arabic", sans-serif';
-    var mw = x.measureText('شمس').width || 1; if (mw > w * 0.8) { size *= w * 0.8 / mw; x.font = '700 ' + size + 'px "Reem Kufi", "Noto Kufi Arabic", sans-serif'; }
-    x.fillStyle = '#fff'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.direction = 'rtl';
-    x.fillText('شمس', w / 2, h * 0.47);
-    var d = x.getImageData(0, 0, w, h).data, list = [], step = Math.max(2, Math.round(Math.sqrt(w * h / 260000)));
-    for (var yy = 0; yy < h; yy += step) for (var xx = 0; xx < w; xx += step) if (d[(yy * w + xx) * 4 + 3] > 128) list.push(xx, yy);
-    var m = Math.min(w, h), sm = w < 760;
-    var sx = sm ? w * 0.78 : w * 0.8, sy = sm ? h * 1.0 : h * 1.1, sr = sm ? w * 0.5 : m * 0.6;
-    for (var k = 0; k < DN; k++) {
-      var j = list.length ? Math.floor(Math.random() * list.length / 2) * 2 : 0;
-      dust.aT[k * 2] = (list[j] || w / 2) + Math.random() * step; dust.aT[k * 2 + 1] = (list[j + 1] || h / 2) + Math.random() * step;
-      var a = Math.random() * Math.PI * 2, rr = sr * (Math.random() < 0.25 ? 0.97 + Math.random() * 0.06 : Math.sqrt(Math.random()));
-      dust.aD[k * 2] = sx + Math.cos(a) * rr; dust.aD[k * 2 + 1] = sy + Math.sin(a) * rr;
-    }
-    dust.g.attributes.aT.needsUpdate = true; dust.g.attributes.aD.needsUpdate = true;
-  }
-
-  var booted = false, target = 0, shownP = 0, t0 = performance.now(), lastT = t0, gathered = false, leaving = false, gStart = 0;
+  var booted = false, target = 0, shownP = 0, t0 = performance.now(), lastT = t0, leaving = false;
+  if (gl && window.gsap && !reduce) gsap.fromTo(INTRO, { reel: 0 }, { reel: 1, duration: 1.2, delay: 0.4, ease: 'power2.out' });
   function loadLoop() {
     var nowT = performance.now(), ldt = Math.min(0.1, (nowT - lastT) / 1000); lastT = nowT;
-    target = Math.max(target, Math.min(0.9, (nowT - t0) / 2400));
+    target = Math.max(target, Math.min(0.9, (nowT - t0) / 2600));
     shownP += (target - shownP) * (1 - Math.exp(-ldt * 4.5)); if (target >= 1 && shownP > 0.99) shownP = 1;
-    dPct.textContent = pad(Math.round(shownP * 100), 3);
-    dLbl.textContent = 'Before sunrise · ' + hhmm(lerp(4.5, 5 + 31 / 60, shownP));
+    dPct.textContent = 'Frame ' + pad(Math.round(shownP * 24 * 4), 3);
     if (shownP >= 1) { done(); return; }
     requestAnimationFrame(loadLoop);
   }
   loadLoop();
-  function gather() {
-    if (gathered || !dust) return; gathered = true; gStart = performance.now();
-    dustTargets();
-    gsap.to(dust.u.uA, { value: 1, duration: 2.2, ease: 'power2.inOut' });
-  }
   function done() {
-    dLbl.textContent = 'Sunrise · Doha · 05:31';
-    if (!dust) { dawn.hidden = true; heroIn(); reveals(); return; }
-    gather();
-      gsap.delayedCall(Math.max(0.6, 3.5 - (performance.now() - gStart) / 1000), leave);
-  }
-  function leave() {
     if (leaving) return; leaving = true;
-    if (!dust) { dawn.hidden = true; heroIn(); reveals(); return; }
-    var tl = gsap.timeline({ onComplete: function () { dust.on = false; dust.r.dispose(); dawn.hidden = true; } });
-    tl.to(dust.u.uB, { value: 1, duration: 1.7, ease: 'power3.inOut' }, 0)
-      .to('#dawn .row', { opacity: 0, duration: 0.6 }, 0)
-      .to(dawnBg, { opacity: 0, duration: 1.1, ease: 'power2.inOut' }, 0.8)
-      .add(function () { heroIn(); reveals(); }, 1.1)
-      .to(dust.u.uAlpha, { value: 0, duration: 0.9, ease: 'power2.out' }, 1.6);
+    if (!gl || !window.gsap || reduce) { INTRO.I = 0; INTRO.ecl = 0; INTRO.reel = 0; dawn.hidden = true; document.body.classList.remove('intro'); heroIn(); reveals(); return; }
+    var tl = gsap.timeline({ delay: 0.6, onComplete: function () { dawn.hidden = true; } });
+    tl.add(function () { dLbl.textContent = 'First light · Doha · 05:31'; }, 0)
+      .to(INTRO, { ring: 1, duration: 0.4, ease: 'power2.out' }, 0)
+      .to(INTRO, { burn: 1, duration: 1.5, ease: 'power2.in' }, 0.25)
+      .to('#dawn .row', { opacity: 0, duration: 0.5 }, 0.5)
+      .to(INTRO, { ring: 0, duration: 1.2, ease: 'power2.in' }, 0.9)
+      .to(INTRO, { ecl: 0, reel: 0, duration: 1.0, ease: 'power2.out' }, 1.6)
+      .to(INTRO, { I: 0, duration: 2.1, ease: 'power3.inOut' }, 1.5)
+      .add(function () { document.body.classList.remove('intro'); heroIn(); reveals(); }, 2.4);
   }
-  dawn.addEventListener('click', function () { if (booted && gathered) leave(); });
   function heroIn() {
     if (!window.gsap || reduce) return;
     gsap.from('.word', { yPercent: 30, opacity: 0, duration: 1.4, ease: 'power3.out' });
     gsap.from('.entry > *, .hero-foot > *', { y: 24, opacity: 0, duration: 1.1, stagger: 0.08, ease: 'power3.out', delay: 0.25 });
   }
-  function boot() { if (booted) return; booted = true; target = 1; gather(); }
+  function boot() { if (booted) return; booted = true; target = 1; }
   var fontWait = document.fonts && document.fonts.load ? Promise.all(['800 100px Syne', '700 40px "Reem Kufi"', '400 16px "DM Mono"'].map(function (f, i) { return document.fonts.load(f, ['Shams', 'شمس', '06:00'][i]); })) : Promise.resolve();
-  Promise.all([new Promise(function (r) { setTimeout(r, reduce ? 100 : 1200); }), Promise.race([fontWait, new Promise(function (r) { setTimeout(r, 3500); })])]).then(function () {
+  Promise.all([new Promise(function (r) { setTimeout(r, reduce ? 100 : 2600); }), Promise.race([fontWait, new Promise(function (r) { setTimeout(r, 3500); })])]).then(function () {
     if (gl) texs.forEach(function (t, i) { t.dispose(); texs[i] = posterTex(WORK[i]); });
     boot();
   }, boot);
-  setTimeout(boot, 5000);
+  setTimeout(boot, 5500);
 
   // ---------- Text reveals
   function reveals() {
