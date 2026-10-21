@@ -118,10 +118,10 @@ main a, main button, main img { pointer-events: auto; }
 
 /* Work: one film per hour */
 .work-pin { grid-template-columns: minmax(0, 1fr) auto; align-content: end; gap: 24px; padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 40px); }
-.hour { display: grid; gap: 6px; max-width: 520px; }
-.hour .h { font: 800 clamp(3.4rem, 8vw, 7.5rem)/.85 var(--f-display); letter-spacing: -.05em; font-variant-numeric: tabular-nums; }
+.hour { display: grid; gap: 6px; align-self: end; align-content: end; max-width: min(380px, 30vw); }
+.hour .h { font: 800 clamp(2rem, 3.4vw, 3.1rem)/.9 var(--f-display); letter-spacing: -.05em; font-variant-numeric: tabular-nums; }
 .hour .h small { font-size: .32em; letter-spacing: 0; font-weight: 500; margin-left: .4em; vertical-align: .9em; color: var(--accent); }
-.hour h2 { margin: 6px 0 0; font: 700 clamp(1.5rem, 2.6vw, 2.4rem)/1.05 var(--f-display); letter-spacing: -.02em; text-wrap: balance; }
+.hour h2 { margin: 4px 0 0; font: 700 clamp(1.3rem, 2vw, 1.9rem)/1.08 var(--f-display); letter-spacing: -.02em; text-wrap: balance; }
 .hour .cl { color: var(--accent); }
 .play { justify-self: start; margin-top: 10px; display: inline-flex; gap: 10px; align-items: center; background: var(--fg); color: var(--sky); border: 0; border-radius: 999px; padding: 11px 18px 11px 14px; cursor: pointer; font-family: var(--f-mono); font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; }
 .play::before { content: ""; border-left: 9px solid currentColor; border-top: 6px solid transparent; border-bottom: 6px solid transparent; }
@@ -191,7 +191,8 @@ html.no-gl .still { display: block; width: min(60vw, 420px); aspect-ratio: 1; bo
   .hero-pin { padding-top: calc(env(safe-area-inset-top, 0px) + 16vh); }
   .entry { grid-template-columns: minmax(0, 1fr); }
   .hero-foot { flex-direction: column; align-items: start; }
-  .hour .h { font-size: 3.4rem; }
+  .hour .h { font-size: 2.2rem; }
+  .hour { max-width: none; }
   .about-pin { align-content: end; padding-bottom: 40px; }
   .facts { grid-template-columns: minmax(0, 1fr); }
   .contact-pin .big { font-size: 3rem; }
@@ -217,7 +218,7 @@ html.no-gl .still { display: block; width: min(60vw, 420px); aspect-ratio: 1; bo
   <svg viewBox="-50 -50 100 100">
     <defs><path id="ring" d="M 0,-46 a 46,46 0 1,1 -0.01,0"/></defs>
     <g id="ticks"></g>
-    <line class="shadow" id="gnomon" x1="0" y1="-41" x2="0" y2="-35"/>
+    <line class="shadow" id="gnomon" x1="0" y1="-41.5" x2="0" y2="-36.5"/>
     <text><textPath href="#ring">Mohammed Shams · Films &amp; commercials · Doha, Qatar · One day, twelve films · </textPath></text>
   </svg>
 </div>
@@ -439,8 +440,8 @@ html.no-gl .still { display: block; width: min(60vw, 420px); aspect-ratio: 1; bo
 
   var ticks = '';
   for (var t = 0; t < 72; t++) {
-    var a = t / 72 * Math.PI * 2, hr = t % 6 === 0, r1 = hr ? 38 : 39.5;
-    ticks += '<line class="tick' + (hr ? ' hr' : '') + '" x1="' + (Math.sin(a) * r1).toFixed(2) + '" y1="' + (-Math.cos(a) * r1).toFixed(2) + '" x2="' + (Math.sin(a) * 41).toFixed(2) + '" y2="' + (-Math.cos(a) * 41).toFixed(2) + '"/>';
+    var a = t / 72 * Math.PI * 2, hr = t % 6 === 0, r1 = hr ? 37.6 : 38.8;
+    ticks += '<line class="tick' + (hr ? ' hr' : '') + '" x1="' + (Math.sin(a) * r1).toFixed(2) + '" y1="' + (-Math.cos(a) * r1).toFixed(2) + '" x2="' + (Math.sin(a) * 40).toFixed(2) + '" y2="' + (-Math.cos(a) * 40).toFixed(2) + '"/>';
   }
   $('ticks').innerHTML = ticks;
   var rays = $('rays');
@@ -619,14 +620,14 @@ html.no-gl .still { display: block; width: min(60vw, 420px); aspect-ratio: 1; bo
   }
 
   // ---------- Where the sun is, chapter by chapter (CSS pixels, from the top left)
-  var W = innerWidth, H = innerHeight, small = W < 760;
+  var W = document.documentElement.clientWidth || innerWidth, H = innerHeight, small = W < 760;
   function S(x, y, r) { return { x: x, y: y, r: r }; }
   function mixS(a, b, t) { return S(lerp(a.x, b.x, t), lerp(a.y, b.y, t), lerp(a.r, b.r, t)); }
   function sunAt() {
     var m = Math.min(W, H), s;
     var heroS = small ? S(W * 0.78, H * 1.0, W * 0.5) : S(W * 0.8, H * 1.1, m * 0.6);
-    var wr = small ? W * 0.38 : m * 0.3, wp = st.work;
-    var workS = small ? S(W * 0.5, H * 0.34, wr) : S(W * (0.6 - 0.06 * Math.cos(Math.PI * wp)), H * (0.46 - 0.05 * Math.sin(Math.PI * wp)), wr);
+    var wr = small ? W * 0.31 : m * 0.27, wp = st.work;
+    var workS = small ? S(W * 0.5, H * 0.36, wr) : S(W * (0.6 - 0.06 * Math.cos(Math.PI * wp)), H * (0.5 - 0.03 * Math.sin(Math.PI * wp)), wr);
     var cliS = S(W * 0.5, H * (small ? 0.4 : 0.46), small ? W * 0.17 : m * 0.15);
     var aboutS = small ? S(W * 0.8, H * 0.12, W * 0.12) : S(W * 0.74, H * 0.62, m * 0.24);
     var contS = small ? S(W * 0.74, H * 0.15, W * 0.15) : S(W * 0.76, H * 0.3, m * 0.17);
@@ -696,7 +697,7 @@ html.no-gl .still { display: block; width: min(60vw, 420px); aspect-ratio: 1; bo
 
     // the sundial follows the sun while the films play; its shadow turns with the hour
     var dialOn = sstep(0.6, 1, st.hero) * (1 - sstep(0, 0.2, st.clients));
-    var ds = sun.r * 2.5;
+    var ds = sun.r * 2.9; // ticks sit at 1.09–1.16 × the sun's radius, the text ring at 1.33 ×
     dial.style.width = dial.style.height = ds + 'px';
     dial.style.opacity = dialOn * (small ? 0.7 : 1);
     dial.style.transform = 'translate(' + (sun.x - ds / 2) + 'px,' + (sun.y - ds / 2) + 'px) rotate(' + (-st.work * 160 + time * (reduce ? 0 : 2)) + 'deg)';
@@ -747,7 +748,7 @@ html.no-gl .still { display: block; width: min(60vw, 420px); aspect-ratio: 1; bo
   }
 
   function resize() {
-    W = innerWidth; H = innerHeight; small = W < 760;
+    var cvs = $('sky'); W = cvs.clientWidth || document.documentElement.clientWidth; H = cvs.clientHeight || innerHeight; small = W < 760;
     if (!gl) return;
     renderer.setSize(W, H, false);
     var dpr = renderer.getPixelRatio();
