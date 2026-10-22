@@ -8,13 +8,13 @@ import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
 const IMG = new URL("../journey/img/", import.meta.url).href; // works from the main page too
 // Work in the ring, in order. Titles must match projects.js.
 const PICK = [
-  ["False Gods", "false-gods"], ["Oráculo Records", "oraculo"], ["Tristan Bejawn", "tristanbejawn"],
-  ["Faih Bitrou", "faih-bitrou"],
-  ["VIGOR", "vigorvigorous"], ["boy", "learnwithregrets"], ["Sina Golnoghreh", "sinawings"],
+  ["False Gods", "false-gods"], ["Mohammed Shams", "mohammed-shams"], ["Oráculo Records", "oraculo"],
+  ["Pedros Temizian", "pedros-temizian"], ["Tristan Bejawn", "tristanbejawn"], ["Fahad Al Nabhan", "fahad-alnabhan"],
+  ["Faih Bitrou", "faih-bitrou"], ["VIGOR", "vigorvigorous"], ["boy", "learnwithregrets"], ["Sina Golnoghreh", "sinawings"],
   ["Origins Inconclusive", "originsinconclusive"], ["Matthew Joseph", "matthewjoseph"], ["DJ Lofi", "dj-lofi"],
   ["instinkt lab", "instinktlab"], ["Nude Club Records", "nudeclubrecords"],
 ];
-const NO_FRAME = ["vigorvigorous.com"];
+const NO_FRAME = ["vigorvigorous.com", "/mohammed-shams/", "/pedros-website/"]; // the last two run heavy WebGL of their own
 const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const pad = n => String(n).padStart(2, "0");
