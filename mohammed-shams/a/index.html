@@ -88,6 +88,15 @@ nav a:hover { background: var(--fg); color: var(--sky); border-color: var(--fg);
 @media not ((hover: hover) and (pointer: fine)) { .cursor { display: none; } }
 
 /* Sundial ring that sits around the sun while the films play */
+/* The film itself plays inside the sun: real Vimeo film (muted loop) over the still, clipped to the disc */
+.sunfilm { position: fixed; left: 0; top: 0; z-index: 4; width: 10px; height: 10px; border-radius: 50%; overflow: hidden; pointer-events: none; opacity: 0; will-change: transform, opacity; background: #2a0d10; transition: scale .6s var(--ease); }
+.sunfilm.hover { scale: 1.025; }
+.sunfilm img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity .7s ease; }
+.sunfilm img.on { opacity: 1; }
+.sunfilm .sf-vid { position: absolute; inset: 0; opacity: 0; transition: opacity 1s ease; }
+.sunfilm .sf-vid.on { opacity: 1; }
+.sunfilm iframe { position: absolute; left: 50%; top: 50%; width: 178%; height: 100%; transform: translate(-50%, -50%); border: 0; }
+.sunfilm::after { content: ''; position: absolute; inset: 0; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(255, 228, 180, .55), inset 0 0 38px 8px rgba(255, 170, 80, .5); }
 .dial { position: fixed; left: 0; top: 0; z-index: 5; pointer-events: none; width: 100px; height: 100px; opacity: 0; will-change: transform; }
 .dial svg { width: 100%; height: 100%; overflow: visible; }
 .dial text { font-family: var(--f-mono); font-size: 3.2px; letter-spacing: .5px; fill: var(--fg); text-transform: uppercase; }
@@ -214,6 +223,7 @@ html.no-gl .still { display: block; width: min(60vw, 420px); aspect-ratio: 1; bo
 
 <div class="cursor" id="cursor" aria-hidden="true"><span id="cursor-label">Play</span></div>
 
+<div class="sunfilm" id="sunfilm" aria-hidden="true"><div class="sf-vid" id="sf-vid"></div></div>
 <div class="dial" id="dial" aria-hidden="true">
   <svg viewBox="-50 -50 100 100">
     <defs><path id="ring" d="M 0,-46 a 46,46 0 1,1 -0.01,0"/></defs>
@@ -641,6 +651,28 @@ html.no-gl .still { display: block; width: min(60vw, 420px); aspect-ratio: 1; bo
   // ---------- HUD
   var clockEl = $('clock'), clockLbl = $('clock-lbl'), hTime = $('h-time'), hTitle = $('h-title'), hClient = $('h-client'), still = $('still');
   var dial = $('dial'), gnomon = $('gnomon'), shown = -1, isDark = null, curFilm = 0;
+  // Real films inside the sun. Stills are plain <img> (no CORS needed), and the film itself plays as a muted
+  // Vimeo background loop once the scroll settles on an hour. The WebGL disc stays underneath as the fallback.
+  var sf = $('sunfilm'), sfVid = $('sf-vid'), sfImgs = [], sfTimer = 0, sfFrame = null, sfOn = -1;
+  WORK.forEach(function (w) { var im = new Image(); im.alt = ''; im.decoding = 'async'; im.src = thumb(w); sf.insertBefore(im, sfVid); sfImgs.push(im); });
+  var sfVideoOK = !reduce && !(navigator.connection && navigator.connection.saveData);
+  function sunFilm(i) {
+    sfImgs.forEach(function (im, k) { im.classList.toggle('on', k === i); });
+    sfVid.classList.remove('on');
+    clearTimeout(sfTimer);
+    if (!sfVideoOK) return;
+    sfTimer = setTimeout(function () {
+      var w = WORK[i]; sfOn = i;
+      if (!sfFrame) { sfFrame = document.createElement('iframe'); sfFrame.allow = 'autoplay; fullscreen'; sfFrame.tabIndex = -1; sfFrame.title = 'Film preview'; sfVid.appendChild(sfFrame); }
+      sfFrame.src = 'https://player.vimeo.com/video/' + w.id + '?h=' + w.h + '&background=1&autoplay=1&muted=1&loop=1&autopause=0&dnt=1&quality=540p';
+    }, 650);
+  }
+  addEventListener('message', function (e) {
+    if (!sfFrame || e.source !== sfFrame.contentWindow) return;
+    var d = e.data; try { if (typeof d === 'string') d = JSON.parse(d); } catch (x) { return; }
+    if (d && d.event === 'ready') sfFrame.contentWindow.postMessage(JSON.stringify({ method: 'addEventListener', value: 'timeupdate' }), '*');
+    if (d && d.event === 'timeupdate' && d.data && d.data.seconds > 0.25 && sfOn === curFilm) sfVid.classList.add('on');
+  });
   function setFilm(i) {
     if (i === shown) return; shown = i; curFilm = i;
     var w = WORK[i];
@@ -649,6 +681,7 @@ html.no-gl .still { display: block; width: min(60vw, 420px); aspect-ratio: 1; bo
     hClient.textContent = w.client + ' · ' + w.kind + ' · ' + w.year;
     hoursEl.querySelectorAll('button').forEach(function (b, k) { b.classList.toggle('on', k === i); });
     if (!gl) still.src = thumb(w);
+    sunFilm(i);
     if (window.gsap && !reduce) gsap.fromTo([hTitle, hClient], { y: 18, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, stagger: 0.05, ease: 'power3.out' });
   }
   $('h-play').onclick = function () { openPlayer(WORK[curFilm]); };
@@ -694,6 +727,13 @@ html.no-gl .still { display: block; width: min(60vw, 420px); aspect-ratio: 1; bo
     if (fi >= WORK.length - 1) { fi = WORK.length - 2; ff = 1; }
     var mixE = sstep(0.3, 0.7, ff);
     setFilm(mixE > 0.5 ? fi + 1 : fi);
+
+    // the real film sits exactly on the sun's disc
+    var sfA = sstep(0.75, 1, st.hero) * (1 - sstep(0, 0.2, st.clients)) * (1 - sstep(0, 0.3, INTRO.I));
+    sf.style.opacity = sfA;
+    if (sfA > 0) { var sd = sun.r * 2; sf.style.width = sf.style.height = sd + 'px'; sf.style.transform = 'translate(' + (sun.x - sun.r) + 'px,' + (sun.y - sun.r) + 'px)'; }
+    sf.style.visibility = sfA > 0 ? 'visible' : 'hidden';
+    sf.classList.toggle('hover', !!overSun);
 
     // the sundial follows the sun while the films play; its shadow turns with the hour
     var dialOn = sstep(0.6, 1, st.hero) * (1 - sstep(0, 0.2, st.clients));
