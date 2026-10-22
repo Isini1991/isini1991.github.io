@@ -3,8 +3,7 @@
 
   These are Esi's real projects. Text was written from each live site.
   Screenshots live in images/ (<slug>-desktop.webp and <slug>-mobile.webp).
-  Still to fill in: year for every project, the Amen Road details, and a better
-  cover for Brent Foster (its hero video failed to load).
+  Still to fill in: year for every project and the Amen Road details.
 
   Fields
     title     Project name
@@ -63,23 +62,6 @@ window.PROJECTS = [
     mobile: "images/tristanbejawn-mobile.webp",
     colors: ["#D9D6D0", "#2B2B2B"],
     shape: "stripes",
-    featured: true
-  },
-  {
-    title: "The Monolith Project",
-    client: "Immersive 3D experience",
-    year: "",
-    medium: "WebGL world, custom shaders, 3D",
-    summary: "A browser-based 3D journey where a silent monolith wakes across the stars. Hand-drawn 2D illustrations by Zao Yu Lin, rebuilt as 3D scenes with custom shaders.",
-    url: "https://themonolithproject.net/",
-    video: "",
-    embed: true,
-    interactive: false,
-    live: true,
-    image: "media/web/themonolithproject-scene-poster.webp",
-    mobile: "images/themonolithproject-mobile.webp",
-    colors: ["#1B1F3A", "#F0C987"],
-    shape: "orb",
     featured: true
   },
   {
@@ -199,22 +181,6 @@ window.PROJECTS = [
     featured: true
   },
   {
-    title: "Brent Foster",
-    client: "Commercial and documentary film director",
-    year: "",
-    medium: "Director's site, film library, stills",
-    summary: "An image-led site for a director whose films pair surreal visuals with real human performances.",
-    url: "https://www.brentfoster.com/",
-    video: "",
-    embed: false,
-    interactive: false,
-    live: false,
-    image: "",
-    colors: ["#2D3B3A", "#E3B98F"],
-    shape: "orb",
-    featured: false
-  },
-  {
     title: "Amen Road",
     client: "Client details to add",
     year: "",
@@ -260,22 +226,6 @@ window.PROJECTS = [
     image: "images/instinktlab-desktop.webp",
     colors: ["#1A1A1A", "#9AA3AD"],
     shape: "stripes",
-    featured: false
-  },
-  {
-    title: "Dais Records",
-    client: "Independent record label",
-    year: "",
-    medium: "Label site, shop, dark and light modes",
-    summary: "A full shop and archive for a label releasing post-punk, darkwave, shoegaze and ambient records since 2007, with artist pages, tours and news.",
-    url: "https://daisrecords.com/",
-    video: "",
-    embed: false,
-    interactive: false,
-    live: false,
-    image: "images/daisrecords-desktop.webp",
-    colors: ["#F9F9F9", "#111111"],
-    shape: "dots",
     featured: false
   },
   {

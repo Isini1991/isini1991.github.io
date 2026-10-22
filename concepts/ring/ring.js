@@ -9,12 +9,12 @@ const IMG = new URL("../journey/img/", import.meta.url).href; // works from the 
 // Work in the ring, in order. Titles must match projects.js.
 const PICK = [
   ["False Gods", "false-gods"], ["Oráculo Records", "oraculo"], ["Tristan Bejawn", "tristanbejawn"],
-  ["The Monolith Project", "themonolithproject", "themonolithproject-scene-poster.webp"], ["Faih Bitrou", "faih-bitrou"],
+  ["Faih Bitrou", "faih-bitrou"],
   ["VIGOR", "vigorvigorous"], ["boy", "learnwithregrets"], ["Sina Golnoghreh", "sinawings"],
   ["Origins Inconclusive", "originsinconclusive"], ["Matthew Joseph", "matthewjoseph"], ["DJ Lofi", "dj-lofi"],
-  ["instinkt lab", "instinktlab"], ["Dais Records", "daisrecords"], ["Nude Club Records", "nudeclubrecords"],
+  ["instinkt lab", "instinktlab"], ["Nude Club Records", "nudeclubrecords"],
 ];
-const NO_FRAME = ["vigorvigorous.com", "daisrecords.com", "brentfoster.com"];
+const NO_FRAME = ["vigorvigorous.com"];
 const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const pad = n => String(n).padStart(2, "0");
